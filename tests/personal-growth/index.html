@@ -4,20 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HV Personal Growth Test</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%233F5B4E%27/%3E%3Cpath d=%27M5.5%207v10M10.5%207v10M5.5%2012h5M13%207l3%2010%203-10%27 stroke=%27white%27 stroke-width=%271.9%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22%3E%3Crect width=%2248%22 height=%2248%22 rx=%2212%22 fill=%22%23127A4F%22/%3E%3Ccircle cx=%2216.5%22 cy=%2216.5%22 r=%225.5%22 stroke=%22%23FFFFFF%22 stroke-width=%223%22 fill=%22none%22/%3E%3Ccircle cx=%2231.5%22 cy=%2216.5%22 r=%225.5%22 stroke=%22%23FFFFFF%22 stroke-width=%223%22 fill=%22none%22/%3E%3Ccircle cx=%2216.5%22 cy=%2231.5%22 r=%225.5%22 stroke=%22%23FFFFFF%22 stroke-width=%223%22 fill=%22none%22/%3E%3Ccircle cx=%2231.5%22 cy=%2231.5%22 r=%227.5%22 fill=%22%23FFC54D%22/%3E%3Cpath d=%22M28 31.6l2.5 2.5 4.8-5%22 stroke=%22%2317231C%22 stroke-width=%222.6%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
-    --paper: #F8F7F2;
-    --paper-raised: #F0EEE7;
-    --ink: #2A2B26;
-    --ink-soft: #5E5E55;
-    --ink-faint: #8F8E83;
-    --line: #E4E0D5;
-    --accent: #3F5B4E;
-    --accent-soft: #E9EEE7;
-    --accent-ink: #24362D;
-    --warn: #8A5A3B;
+    --paper: #F7FAF7;
+    --paper-raised: #EEF4EF;
+    --ink: #17231C;
+    --ink-soft: #4A5A50;
+    --ink-faint: #6F8177;
+    --line: #DCE7DF;
+    --accent: #127A4F;
+    --accent-soft: #E1F3E8;
+    --accent-ink: #0B4F33;
+    --warn: #A4552E;
+    --spark: #F4A62A;
     --primary-text: #FFFFFF;
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
@@ -25,31 +26,33 @@
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --paper: #191A16;
-      --paper-raised: #212319;
-      --ink: #EAE8DE;
-      --ink-soft: #B4B2A4;
-      --ink-faint: #757468;
-      --line: #34362B;
-      --accent: #8FB89E;
-      --accent-soft: #26332A;
-      --accent-ink: #C9E2D2;
-      --warn: #C79369;
-      --primary-text: #14170F;
+      --paper: #0F1512;
+      --paper-raised: #16201B;
+      --ink: #E6F0E9;
+      --ink-soft: #A9BBAF;
+      --ink-faint: #7C9084;
+      --line: #25332B;
+      --accent: #46C98B;
+      --accent-soft: #143426;
+      --accent-ink: #BDEFD4;
+      --warn: #E09A6A;
+      --spark: #F7B84B;
+      --primary-text: #06140D;
     }
   }
   :root[data-theme="dark"] {
-    --paper: #191A16;
-    --paper-raised: #212319;
-    --ink: #EAE8DE;
-    --ink-soft: #B4B2A4;
-    --ink-faint: #757468;
-    --line: #34362B;
-    --accent: #8FB89E;
-    --accent-soft: #26332A;
-    --accent-ink: #C9E2D2;
-    --warn: #C79369;
-    --primary-text: #14170F;
+    --paper: #0F1512;
+    --paper-raised: #16201B;
+    --ink: #E6F0E9;
+    --ink-soft: #A9BBAF;
+    --ink-faint: #7C9084;
+    --line: #25332B;
+    --accent: #46C98B;
+    --accent-soft: #143426;
+    --accent-ink: #BDEFD4;
+    --warn: #E09A6A;
+    --spark: #F7B84B;
+    --primary-text: #06140D;
   }
   html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
   * { box-sizing: border-box; }
@@ -71,7 +74,7 @@
 
   .brand-row { display: flex; align-items: center; gap: 8px; margin-bottom: 40px; }
   .brand-row .brand-icon { flex: none; display: flex; }
-  .brand-row .brand-word { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; color: var(--ink-soft); }
+  .brand-row .brand-word { font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em; color: var(--ink); }
   .brand-row .brand-sep { font-size: 12px; color: var(--ink-faint); }
   .brand-row .brand-sub { font-size: 12px; color: var(--ink-faint); letter-spacing: 0.02em; }
   .all-tests-link { display: inline-block; font-size: 13px; color: var(--ink-faint); text-decoration: none; margin-bottom: 18px; }
@@ -100,6 +103,8 @@
     font-size: 16px; font-weight: 600; padding: 15px 26px; border-radius: 6px;
     cursor: pointer; font-family: inherit;
   }
+  button.primary { transition: filter 0.15s ease, transform 0.15s ease; }
+  button.primary:hover:not(:disabled) { filter: brightness(1.08); }
   button.primary:active { opacity: 0.85; }
   button.primary:disabled { opacity: 0.4; cursor: default; }
   button.primary:focus-visible, button.ghost:focus-visible, .opt:focus-visible {
@@ -112,8 +117,8 @@
   button.ghost:active { background: var(--paper-raised); }
 
   .quiz-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; font-size: 13px; color: var(--ink-faint); }
-  .progress-track { height: 2px; background: var(--line); margin-bottom: 40px; position: relative; }
-  .progress-fill { height: 2px; background: var(--accent); transition: width 0.35s ease; }
+  .progress-track { height: 4px; background: var(--line); margin-bottom: 40px; position: relative; border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 4px; background: var(--accent); border-radius: 99px; transition: width 0.35s ease; }
   .q-scenario { font-size: 21px; line-height: 1.45; margin: 0 0 32px; font-weight: 500; }
   @media (max-width: 480px) { .q-scenario { font-size: 19px; } }
   .options { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--line); }
@@ -123,7 +128,7 @@
     text-align: left; cursor: pointer; font-family: inherit; color: var(--ink); width: 100%; transition: background 0.15s ease;
   }
   .opt:hover { background: var(--paper-raised); }
-  .opt.selected { background: var(--accent-soft); }
+  .opt.selected { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
   .opt .letter {
     flex: none; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line);
     display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink-faint); margin-top: 2px;
@@ -147,7 +152,7 @@
     padding: 13px 14px; appearance: none;
   }
   .field select {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238C8B7F' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236F8177' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
     background-repeat: no-repeat; background-position: right 14px center;
   }
   .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -178,8 +183,8 @@
   .dim-row .dim-top { display: flex; justify-content: space-between; font-size: 14.5px; margin-bottom: 7px; }
   .dim-row .dim-name { font-weight: 600; }
   .dim-row .dim-score { color: var(--ink-faint); }
-  .bar-track { height: 6px; background: var(--line); border-radius: 6px; overflow: hidden; }
-  .bar-fill { height: 6px; background: var(--accent); border-radius: 6px; }
+  .bar-track { height: 8px; background: var(--line); border-radius: 6px; overflow: hidden; }
+  .bar-fill { height: 8px; background: var(--accent); border-radius: 6px; }
   .dim-row .dim-explain { font-size: 14px; color: var(--ink-soft); margin-top: 8px; }
 
   .section-label { font-size: 13px; color: var(--ink-faint); margin: 48px 0 14px; }
@@ -1378,7 +1383,7 @@ async function downloadPlanPdf(){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "mm", format: "a4" });
     const pageW = 210, pageH = 297, mX = 20, cW = pageW - 2 * mX;
-    const INK = [35,36,31], SOFT = [90,90,80], FAINT = [140,138,127], ACC = [63,91,78], LINE = [216,211,196];
+    const INK = [23,35,28], SOFT = [74,90,80], FAINT = [111,129,119], ACC = [18,122,79], LINE = [220,231,223];
     let y = 0;
     const col = c => doc.setTextColor(c[0], c[1], c[2]);
     const newPage = () => { doc.addPage(); y = 24; };
@@ -1400,7 +1405,7 @@ async function downloadPlanPdf(){
 
     /* Cover */
     y = 26;
-    drawBrandMark(doc, mX, y - 4.6, 5.6, ACC);
+    drawBrandMark(doc, mX, y - 4.8, 6);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); col(INK); doc.text("HV TEST", mX + 8, y - 0.5);
     y += 12; doc.setFont("times", "normal"); doc.setFontSize(24); col(INK);
     doc.splitTextToSize(name + "'s Plan of Action", cW).forEach(l => { doc.text(l, mX, y); y += 9; });
@@ -1987,27 +1992,25 @@ function renderIntake(){
 
 function escapeAttr(s){ return (s || "").replace(/"/g, "&quot;"); }
 
-// HV Test mark for PDFs: sage rounded tile with the HV monogram, matching the on-screen logo
-function drawBrandMark(doc, x, yTop, size, rgb){
-  const k = size / 24;
-  doc.setFillColor(rgb[0], rgb[1], rgb[2]);
-  doc.roundedRect(x, yTop, size, size, 6 * k, 6 * k, "F");
-  doc.setDrawColor(255, 255, 255); doc.setLineWidth(1.9 * k); doc.setLineCap("round"); doc.setLineJoin("round");
-  const L = (x1, y1, x2, y2) => doc.line(x + x1 * k, yTop + y1 * k, x + x2 * k, yTop + y2 * k);
-  L(5.5, 7, 5.5, 17); L(10.5, 7, 10.5, 17); L(5.5, 12, 10.5, 12); L(13, 7, 16, 17); L(16, 17, 19, 7);
+// HV Test mark for PDFs: green tile with four answer options, one chosen (amber, ticked), matching the on-screen logo
+function drawBrandMark(doc, x, yTop, size){
+  const k = size / 48, X = v => x + v * k, Y = v => yTop + v * k;
+  doc.setFillColor(18, 122, 79); doc.roundedRect(x, yTop, size, size, 12 * k, 12 * k, "F");
+  doc.setDrawColor(255, 255, 255); doc.setLineWidth(3 * k);
+  [[16.5, 16.5], [31.5, 16.5], [16.5, 31.5]].forEach(c => doc.circle(X(c[0]), Y(c[1]), 5.5 * k, "S"));
+  doc.setFillColor(255, 197, 77); doc.circle(X(31.5), Y(31.5), 7.5 * k, "F");
+  doc.setDrawColor(23, 35, 28); doc.setLineWidth(2.6 * k); doc.setLineCap("round"); doc.setLineJoin("round");
+  doc.lines([[2.5 * k, 2.5 * k], [4.8 * k, -5 * k]], X(28), Y(31.6), [1, 1], "S", false);
   doc.setLineCap("butt"); doc.setLineJoin("miter");
 }
 
 function brandIconSVG(size){
-  size = size || 16;
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-    <rect width="24" height="24" rx="6" style="fill:var(--accent)"/>
-    <path d="M5.5 7v10M10.5 7v10M5.5 12h5M13 7l3 10 3-10" style="stroke:var(--primary-text)" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>`;
+  size = size || 20;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="12" fill="#127A4F"/><circle cx="16.5" cy="16.5" r="5.5" stroke="#FFFFFF" stroke-width="3" fill="none"/><circle cx="31.5" cy="16.5" r="5.5" stroke="#FFFFFF" stroke-width="3" fill="none"/><circle cx="16.5" cy="31.5" r="5.5" stroke="#FFFFFF" stroke-width="3" fill="none"/><circle cx="31.5" cy="31.5" r="7.5" fill="#FFC54D"/><path d="M28 31.6l2.5 2.5 4.8-5" stroke="#17231C" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 function brandHeader(subtitle){
   return `<div class="brand-row">
-    <span class="brand-icon">${brandIconSVG(18)}</span>
+    <span class="brand-icon">${brandIconSVG(22)}</span>
     <span class="brand-word">HV TEST</span>
     ${subtitle ? `<span class="brand-sep">·</span><span class="brand-sub">${subtitle}</span>` : ``}
   </div>`;
@@ -2043,7 +2046,7 @@ function renderQuiz(){
   }
 
   app.innerHTML = `
-    <div class="brand-row" style="margin-bottom:22px;"><span class="brand-icon">${brandIconSVG(16)}</span><span class="brand-word">HV TEST</span></div>
+    <div class="brand-row" style="margin-bottom:22px;"><span class="brand-icon">${brandIconSVG(20)}</span><span class="brand-word">HV TEST</span></div>
     <div class="quiz-header"><span>Question ${current+1} of ${QUESTIONS.length}</span><span>${pct}%</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
     <p class="q-scenario serif">${q.text}</p>
@@ -2274,11 +2277,11 @@ async function downloadPdf(){
     const contentW = pageW - marginX * 2;
     let y = 0;
 
-    const inkColor = [35,36,31];
-    const softColor = [90,90,80];
-    const faintColor = [140,138,127];
-    const accentColor = [63,91,78];
-    const lineColor = [216,211,196];
+    const inkColor = [23,35,28];
+    const softColor = [74,90,80];
+    const faintColor = [111,129,119];
+    const accentColor = [18,122,79];
+    const lineColor = [220,231,223];
 
     function newPage(){ doc.addPage(); y = 24; }
     function ensure(space){ if (y + space > pageH - 20) newPage(); }
@@ -2328,7 +2331,7 @@ async function downloadPdf(){
       doc.text(score + "/100", pageW - marginX, y, { align: "right" });
       y += 4;
       const barW = contentW;
-      doc.setFillColor(216,211,196);
+      doc.setFillColor(220,231,223);
       doc.rect(marginX, y, barW, 2.2, "F");
       doc.setFillColor.apply(doc, accentColor);
       doc.rect(marginX, y, barW * (score/100), 2.2, "F");
@@ -2338,7 +2341,7 @@ async function downloadPdf(){
 
     // ---- Cover / header ----
     y = 26;
-    drawBrandMark(doc, marginX, y - 4.6, 5.6, [63, 91, 78]);
+    drawBrandMark(doc, marginX, y - 4.8, 6);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10.5);
     doc.setTextColor.apply(doc, inkColor);
@@ -2548,7 +2551,7 @@ async function downloadPdf(){
       const plain = insightFor(chosen.scores).replace(/<\/?strong>/g, "");
       body("What this choice may suggest: " + plain, { size: 9, color: softColor, after: 7 });
       ensure(2);
-      doc.setDrawColor(230,227,216);
+      doc.setDrawColor(238,244,239);
       doc.line(marginX, y, pageW - marginX, y);
       y += 7;
     });
