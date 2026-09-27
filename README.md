@@ -45,7 +45,8 @@ scripts/build-manifest.mjs     Builds tests.json from every tests/*/test.json
 }
 ```
 
-4. Commit to `main`. The GitHub Action rebuilds `tests.json` and the new card appears on the All Tests page in about a minute.
+4. For a proper link preview on WhatsApp and other apps, add a 1200x630 `og.png` in the test folder and copy the `og:` and `twitter:` meta tags from `tests/maturity-assessment/index.html` into the new page (change the title, description and URLs).
+5. Commit to `main`. The GitHub Action rebuilds `tests.json` and the new card appears on the All Tests page in about a minute.
 
 Only `title` is required. Tests with the same `category` appear together under one heading (no category: "More tests"). `status` can be `live` (clickable card), `coming-soon` (greyed card, no link, no `index.html` needed yet) or `hidden` (not listed, but the test link still works). Cards are sorted by `order`, then newest `added`. Folders starting with `_` are ignored, so a `_draft` folder stays private from the list.
 
