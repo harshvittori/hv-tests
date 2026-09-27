@@ -26,19 +26,19 @@ jobs:
         with:
           node-version: 20
 
-      - name: Build tests.json from tests/*/test.json
+      - name: Build tests.json and sitemap.xml from tests/*/test.json
         run: node scripts/build-manifest.mjs
 
       - name: Commit tests.json if it changed
         id: commit
         run: |
-          if git diff --quiet -- tests.json; then
+          if git diff --quiet -- tests.json sitemap.xml; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "tests.json already up to date"
           else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add tests.json
+            git add tests.json sitemap.xml
             git commit -m "Update All Tests list"
             git push
             echo "changed=true" >> "$GITHUB_OUTPUT"
