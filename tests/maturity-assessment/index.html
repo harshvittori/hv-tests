@@ -223,6 +223,9 @@
     background: var(--paper-raised); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
   }
   .download-box p { margin: 0; font-size: 14px; color: var(--ink-soft); max-width: 34ch; }
+  .download-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 340px; }
+  .download-actions button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .download-or { font-size: 12px; color: var(--ink-faint); text-align: center; margin: 4px 0 -2px; }
   .download-status { font-size: 13px; color: var(--ink-faint); margin-top: 8px; }
 
   .dims { margin-top: 44px; display: flex; flex-direction: column; gap: 22px; }
@@ -1423,8 +1426,14 @@ function insightsHtml(items){
     </div>` : ``);
 }
 
+// While "Download both" runs, PDFs are collected here instead of being saved one by one
+let pdfCollector = null;
 async function savePdfDoc(doc, filename){
   const blob = doc.output("blob");
+  if (pdfCollector) { pdfCollector.push({ filename: filename, blob: blob }); return; }
+  await saveBlob(blob, filename);
+}
+async function saveBlob(blob, filename){
   let saved = false;
   try {
     if (window.claude && typeof window.claude.use === "function") {
@@ -1441,6 +1450,43 @@ async function savePdfDoc(doc, filename){
     a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+}
+
+// Both PDFs in one ZIP (one download works everywhere, unlike two downloads in a row)
+function loadScriptOnce(src){
+  return new Promise((resolve, reject) => {
+    if (document.querySelector('script[src="' + src + '"]')) return resolve();
+    const el = document.createElement("script");
+    el.src = src; el.onload = resolve; el.onerror = reject;
+    document.head.appendChild(el);
+  });
+}
+async function downloadBothZip(){
+  const statusEl = document.getElementById("both-status");
+  const btn = document.getElementById("both-btn");
+  btn.disabled = true;
+  statusEl.textContent = "Building both documents...";
+  try {
+    if (!window.JSZip) await loadScriptOnce("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js");
+    pdfCollector = [];
+    await downloadPdf();
+    await downloadPlanPdf();
+    const files = pdfCollector;
+    pdfCollector = null;
+    if (files.length !== 2) throw new Error("missing pdf");
+    const zip = new JSZip();
+    files.forEach(f => zip.file(f.filename, f.blob));
+    const blob = await zip.generateAsync({ type: "blob" });
+    await saveBlob(blob, "HV_Test_Maturity_Assessment_" + sanitizeFilenamePart(userInfo.name) + ".zip");
+    statusEl.textContent = "Both documents are in one ZIP file.";
+  } catch (e) {
+    statusEl.textContent = "Couldn't build the ZIP. Please use the two buttons below.";
+  } finally {
+    pdfCollector = null;
+    btn.disabled = false;
+    document.getElementById("pdf-status").textContent = "";
+    document.getElementById("plan-status").textContent = "";
   }
 }
 
@@ -2276,10 +2322,16 @@ function renderResults(){
 
     <div class="download-box">
       <p>Download your two personal documents: your full results report, and a plan of action built from your own answers.</p>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <button class="primary" id="pdf-btn">Download My Maturity Report PDF</button>
+      <div class="download-actions">
+        <button class="primary" id="both-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/></svg>
+          Download both (ZIP)
+        </button>
+        <div class="download-status" id="both-status"></div>
+        <div class="download-or">or one at a time</div>
+        <button class="ghost" id="pdf-btn">Maturity Report PDF</button>
         <div class="download-status" id="pdf-status"></div>
-        <button class="primary" id="plan-btn">Download My Plan of Action PDF</button>
+        <button class="ghost" id="plan-btn">Plan of Action PDF</button>
         <div class="download-status" id="plan-status"></div>
       </div>
     </div>
@@ -2400,6 +2452,7 @@ function renderResults(){
     screen = "landing";
     render();
   });
+  document.getElementById("both-btn").addEventListener("click", downloadBothZip);
   document.getElementById("pdf-btn").addEventListener("click", downloadPdf);
   document.getElementById("plan-btn").addEventListener("click", downloadPlanPdf);
 }
@@ -2729,34 +2782,8 @@ async function downloadPdf(){
     }
 
     doc.setProperties({ title: "Maturity Assessment: Report for " + userInfo.name, subject: "HV Test | Maturity Assessment", author: "HV Test" });
-    const blob = doc.output("blob");
     const filename = "HV_Test_Maturity_Assessment_Report_" + sanitizeFilenamePart(userInfo.name) + ".pdf";
-
-    // Prefer the platform downloads capability if this page can reach it;
-    // fall back to a direct browser download otherwise.
-    let saved = false;
-    try {
-      if (window.claude && typeof window.claude.use === "function") {
-        const downloads = await window.claude.use("downloads");
-        if (downloads) {
-          const result = await downloads.save({ filename: filename, data: blob });
-          saved = result && (result.status === "saved" || result.status === "delivered");
-        }
-      }
-    } catch (e) {
-      saved = false;
-    }
-
-    if (!saved) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
-    }
+    await savePdfDoc(doc, filename);
 
     statusEl.textContent = "Your report has been prepared.";
   } catch (err) {
