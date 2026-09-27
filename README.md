@@ -2,11 +2,11 @@
 
 All HV Vault self-assessment tests in one place. The home page lists every test as a card, and each test lives in its own folder.
 
-**Live:** https://harshvittori.github.io/maturity-assessment/
+**Live:** https://harshvittori.github.io/hv-tests/
 
 | Test | Link |
 |---|---|
-| HV Personal Growth Test | https://harshvittori.github.io/maturity-assessment/tests/personal-growth/ |
+| HV Personal Growth Test | https://harshvittori.github.io/hv-tests/tests/personal-growth/ |
 
 Everything runs in the browser. No login, no server, and no answers are stored or sent anywhere. These are self-assessment and personal growth tools, not clinical or psychological diagnosis.
 
