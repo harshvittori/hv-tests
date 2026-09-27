@@ -281,9 +281,8 @@
   :root[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
   :root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 
-  html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
-    transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .35s ease !important;
-  }
+  /* Theme switch: the new theme is revealed in a circle from the toggle (no colour cross-fade, so nothing turns grey or blinks) */
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
   .theme-toggle svg { transition: transform .45s cubic-bezier(.2,.7,.2,1); }
   .theme-toggle:active svg { transform: rotate(40deg) scale(.9); }
   @keyframes hv-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -2780,11 +2779,19 @@ render();
     }
     btn.addEventListener("click", function () {
       var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      root.classList.add("theme-anim");
-      root.setAttribute("data-theme", next);
-      clearTimeout(btn._t); btn._t = setTimeout(function () { root.classList.remove("theme-anim"); }, 450);
-      try { localStorage.setItem("hv-theme", next); } catch (e) {}
-      sync();
+      function apply() {
+        root.setAttribute("data-theme", next);
+        try { localStorage.setItem("hv-theme", next); } catch (e) {}
+        sync();
+      }
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!document.startViewTransition || reduce) { apply(); return; }
+      var r = btn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+      var end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+      document.startViewTransition(apply).ready.then(function () {
+        root.animate({ clipPath: ["circle(0px at " + x + "px " + y + "px)", "circle(" + end + "px at " + x + "px " + y + "px)"] },
+          { duration: 500, easing: "cubic-bezier(.2,.7,.2,1)", pseudoElement: "::view-transition-new(root)" });
+      }).catch(function () {});
     });
     sync();
   })();
