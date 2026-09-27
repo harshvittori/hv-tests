@@ -11,6 +11,9 @@
     document.documentElement.setAttribute("data-theme", t === "dark" ? "dark" : "light");
   })();
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
 <title>Maturity Assessment | HV Test</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22%3E%3Crect width=%2248%22 height=%2248%22 rx=%2212%22 fill=%22%23127A4F%22/%3E%3Ccircle cx=%2216.5%22 cy=%2216.5%22 r=%225.5%22 stroke=%22%23FFFFFF%22 stroke-width=%223%22 fill=%22none%22/%3E%3Ccircle cx=%2231.5%22 cy=%2216.5%22 r=%225.5%22 stroke=%22%23FFFFFF%22 stroke-width=%223%22 fill=%22none%22/%3E%3Ccircle cx=%2216.5%22 cy=%2231.5%22 r=%225.5%22 stroke=%22%23FFFFFF%22 stroke-width=%223%22 fill=%22none%22/%3E%3Ccircle cx=%2231.5%22 cy=%2231.5%22 r=%227.5%22 fill=%22%23FFC54D%22/%3E%3Cpath d=%22M28 31.6l2.5 2.5 4.8-5%22 stroke=%22%2317231C%22 stroke-width=%222.6%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -28,6 +31,9 @@
     --warn: #A4552E;
     --spark: #F4A62A;
     --primary-text: #FFFFFF;
+    --card: #FFFFFF;
+    --accent-line: #A8D5BD;
+    --accent-ring: rgba(18, 122, 79, 0.14);
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -46,6 +52,9 @@
       --warn: #E09A6A;
       --spark: #F7B84B;
       --primary-text: #06140D;
+      --card: #141C18;
+      --accent-line: #2E6A4C;
+      --accent-ring: rgba(70, 201, 139, 0.2);
     }
   }
   :root[data-theme="dark"] {
@@ -61,6 +70,9 @@
     --warn: #E09A6A;
     --spark: #F7B84B;
     --primary-text: #06140D;
+    --card: #141C18;
+    --accent-line: #2E6A4C;
+    --accent-ring: rgba(70, 201, 139, 0.2);
   }
   html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
   * { box-sizing: border-box; }
@@ -111,9 +123,9 @@
     font-size: 16px; font-weight: 600; padding: 15px 26px; border-radius: 6px;
     cursor: pointer; font-family: inherit;
   }
-  button.primary { transition: filter 0.15s ease, transform 0.15s ease; }
-  button.primary:hover:not(:disabled) { filter: brightness(1.08); }
-  button.primary:active { opacity: 0.85; }
+  button.primary { transition: filter .2s ease, transform .2s cubic-bezier(.2,.7,.2,1), box-shadow .2s ease, opacity .25s ease; }
+  button.primary:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-1px); box-shadow: 0 6px 18px var(--accent-ring); }
+  button.primary:active:not(:disabled) { transform: translateY(0) scale(.98); box-shadow: none; }
   button.primary:disabled { opacity: 0.4; cursor: default; }
   button.primary:focus-visible, button.ghost:focus-visible, .opt:focus-visible {
     outline: 2px solid var(--accent); outline-offset: 2px;
@@ -122,28 +134,51 @@
     background: none; border: 1px solid var(--line); color: var(--ink);
     font-size: 15px; padding: 13px 22px; border-radius: 6px; cursor: pointer; font-family: inherit;
   }
-  button.ghost:active { background: var(--paper-raised); }
+  button.ghost { transition: background-color .2s ease, border-color .2s ease, transform .2s cubic-bezier(.2,.7,.2,1); }
+  button.ghost:hover:not(:disabled) { border-color: var(--accent-line); background: var(--paper-raised); }
+  button.ghost:active:not(:disabled) { transform: scale(.98); }
 
   .quiz-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; font-size: 13px; color: var(--ink-faint); }
   .progress-track { height: 4px; background: var(--line); margin-bottom: 40px; position: relative; border-radius: 99px; overflow: hidden; }
-  .progress-fill { height: 4px; background: var(--accent); border-radius: 99px; transition: width 0.35s ease; }
+  .progress-fill { height: 4px; background: var(--accent); border-radius: 99px; transition: width .5s cubic-bezier(.2,.7,.2,1); }
   .q-scenario { font-size: 21px; line-height: 1.45; margin: 0 0 32px; font-weight: 500; }
   @media (max-width: 480px) { .q-scenario { font-size: 19px; } }
-  .options { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--line); }
+  .options { display: flex; flex-direction: column; gap: 10px; }
   .opt {
-    display: flex; gap: 16px; align-items: flex-start; padding: 18px 4px;
-    border-bottom: 1px solid var(--line); background: none; border-left: none; border-right: none; border-top: none;
-    text-align: left; cursor: pointer; font-family: inherit; color: var(--ink); width: 100%; transition: background 0.15s ease;
+    display: flex; gap: 14px; align-items: center; padding: 15px 16px;
+    border: 1.5px solid var(--line); border-radius: 14px; background: var(--card);
+    text-align: left; cursor: pointer; font-family: inherit; color: var(--ink); width: 100%;
+    transition: border-color .22s ease, background-color .22s ease, box-shadow .22s ease, transform .18s cubic-bezier(.2,.7,.2,1);
   }
-  .opt:hover { background: var(--paper-raised); }
-  .opt.selected { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  .opt:hover { border-color: var(--accent-line); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(20, 60, 40, 0.06); }
+  .opt:active { transform: scale(.99); }
+  .opt.selected { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 4px var(--accent-ring); transform: none; }
   .opt .letter {
-    flex: none; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line);
-    display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ink-faint); margin-top: 2px;
+    flex: none; width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--paper);
+    display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 600; color: var(--ink-faint);
+    transition: background-color .22s ease, border-color .22s ease, color .22s ease;
   }
-  .opt.selected .letter { border-color: var(--accent); color: var(--accent-ink); background: var(--paper); }
-  .opt .opt-text { font-size: 15.5px; color: var(--ink-soft); line-height: 1.5; padding-top: 1px; }
+  .opt:hover .letter { border-color: var(--accent-line); color: var(--accent); }
+  .opt.selected .letter { background: var(--accent); border-color: var(--accent); color: var(--primary-text); animation: hv-pop .32s cubic-bezier(.2,.7,.2,1); }
+  .opt .opt-text { flex: 1; font-size: 15.5px; color: var(--ink-soft); line-height: 1.5; transition: color .22s ease; }
   .opt.selected .opt-text { color: var(--ink); }
+  .opt .opt-check { flex: none; color: var(--accent); opacity: 0; transform: scale(.5); transition: opacity .22s ease, transform .3s cubic-bezier(.2,.7,.2,1); }
+  .opt.selected .opt-check { opacity: 1; transform: scale(1); }
+  @keyframes hv-pop { 0% { transform: scale(.8); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+
+  /* Screen and question entrances */
+  #app.enter > * { animation: hv-rise .45s cubic-bezier(.2,.7,.2,1) both; }
+  #app.enter > *:nth-child(2) { animation-delay: .04s; }
+  #app.enter > *:nth-child(3) { animation-delay: .08s; }
+  #app.enter > *:nth-child(4) { animation-delay: .12s; }
+  #app.enter > *:nth-child(n+5) { animation-delay: .16s; }
+  #app.enter.quiz > .brand-row, #app.enter.quiz > .quiz-header, #app.enter.quiz > .progress-track, #app.enter.quiz > .options { animation: none; }
+  #app.enter .opt { animation: hv-rise .4s cubic-bezier(.2,.7,.2,1) both; }
+  #app.enter .opt:nth-child(2) { animation-delay: .05s; }
+  #app.enter .opt:nth-child(3) { animation-delay: .1s; }
+  #app.enter .opt:nth-child(4) { animation-delay: .15s; }
+  .bar-fill { animation: hv-grow .9s cubic-bezier(.2,.7,.2,1) both; transform-origin: left; }
+  @keyframes hv-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
   .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; }
   .nav-row .spacer { flex: 1; }
@@ -163,17 +198,20 @@
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236F8177' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
     background-repeat: no-repeat; background-position: right 14px center;
   }
-  .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); }
   .field-error { font-size: 12.5px; color: var(--warn); margin-top: 6px; }
   .profession-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 420px) { .profession-grid { grid-template-columns: 1fr; } }
   .prof-opt {
     border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px;
     background: none; color: var(--ink); font-family: inherit; font-size: 14.5px;
-    text-align: left; cursor: pointer;
+    text-align: left; cursor: pointer; border-radius: 10px; background: var(--card);
+    transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease, transform .18s cubic-bezier(.2,.7,.2,1);
   }
-  .prof-opt:hover { background: var(--paper-raised); }
-  .prof-opt.selected { background: var(--accent-soft); border-color: var(--accent); }
+  .prof-opt:hover { border-color: var(--accent-line); transform: translateY(-1px); }
+  .prof-opt:active { transform: scale(.98); }
+  .prof-opt.selected { background: var(--accent-soft); border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); transform: none; }
+  .field input, .field select { transition: border-color .2s ease, box-shadow .2s ease; }
   .privacy-note { font-size: 12.5px; color: var(--ink-faint); margin-top: 30px; max-width: 50ch; }
 
   .score-hero { text-align: left; margin-bottom: 8px; }
@@ -242,6 +280,21 @@
   .theme-toggle .icon-sun { display: none; }
   :root[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
   :root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+  html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
+    transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .35s ease !important;
+  }
+  .theme-toggle svg { transition: transform .45s cubic-bezier(.2,.7,.2,1); }
+  .theme-toggle:active svg { transform: rotate(40deg) scale(.9); }
+  @keyframes hv-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes hv-fade { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
+  }
+
+  /* HV Test wordmark: Outfit, rounded geometric to match the icon */
+  .brand-word { font-family: "Outfit", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; font-size: 17px !important; font-weight: 700 !important; letter-spacing: 0.04em !important; color: var(--ink) !important; line-height: 1; }
+  .brand-word .brand-accent { color: var(--accent); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -1430,14 +1483,13 @@ async function downloadPlanPdf(){
 
     /* Cover */
     y = 26;
-    drawBrandMark(doc, mX, y - 4.8, 6);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); col(INK); doc.text("HV TEST", mX + 8, y - 0.5);
+    drawCoverBrand(doc, mX, y, pageW - mX, "MATURITY ASSESSMENT  |  PLAN OF ACTION");
     y += 12; doc.setFont("times", "normal"); doc.setFontSize(24); col(INK);
     doc.splitTextToSize(name + "'s Plan of Action", cW).forEach(l => { doc.text(l, mX, y); y += 9; });
     doc.setFont("helvetica", "normal"); doc.setFontSize(12.5); col(SOFT); doc.text("A 30-day maturity growth plan, built from your own answers", mX, y);
     y += 10; hr();
     label("Personal Information");
-    const dateStr = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+    const dateStr = assessmentDateTimeText();
     const rows = [["Name", name], ["Age", String(userInfo.age)], ["Profession", professionLabel()]];
     if (userInfo.focus) rows.push(["Main focus now", userInfo.focus]);
     rows.push(["Assessment date", dateStr], ["Overall score", overall + " / 100 (" + tier.label + ")"], ["Plan length", "30 days, then retake the assessment"]);
@@ -1566,8 +1618,9 @@ async function downloadPlanPdf(){
     const n = doc.internal.getNumberOfPages();
     for (let p = 1; p <= n; p++) { doc.setPage(p); doc.setDrawColor(...LINE); doc.setLineWidth(0.2); doc.line(mX, pageH - 16, pageW - mX, pageH - 16);
       doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); col(FAINT);
-      doc.text("HV TEST  |  " + first + "'s Plan of Action", mX, pageH - 11); doc.text("Page " + p + " of " + n, pageW - mX, pageH - 11, { align: "right" }); }
-    await savePdfDoc(doc, sanitizeFilenamePart(name) + "_Plan_of_Action.pdf");
+      drawFooterBrand(doc, mX, pageH - 11, "Maturity Assessment  |  " + first + "'s Plan of Action"); col(FAINT); doc.text("Page " + p + " of " + n, pageW - mX, pageH - 11, { align: "right" }); }
+    doc.setProperties({ title: "Maturity Assessment: Plan of Action for " + name, subject: "HV Test | Maturity Assessment", author: "HV Test" });
+    await savePdfDoc(doc, "HV_Test_Maturity_Assessment_Plan_of_Action_" + sanitizeFilenamePart(name) + ".pdf");
     statusEl.textContent = "Your plan has been prepared.";
   } catch (e) {
     statusEl.textContent = "Something went wrong building the plan. Please try again.";
@@ -1695,6 +1748,13 @@ let timerQuestionIndex = -1;
 let questionStartTs = null;
 let current = 0;
 let screen = "landing";
+let lastProgressPct = 0;
+let assessmentDoneAt = null; // when the person submitted; shown with time on both PDFs
+function assessmentDateTimeText(){
+  const d = assessmentDoneAt || new Date();
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) + ", " +
+         d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
 let pdfStatus = "";
 let userInfo = { name: "", age: "", profession: "", professionOther: "", focus: "" };
 let recentAttemptIds = [];
@@ -1891,6 +1951,12 @@ function render(){
   else if (screen === "quiz") renderQuiz();
   else if (screen === "confirm") renderConfirm();
   else if (screen === "results") renderResults();
+  app.classList.remove("enter");
+  void app.offsetWidth; // restart the entrance animation
+  app.classList.add("enter");
+  app.classList.toggle("quiz", screen === "quiz");
+  clearTimeout(render._t);
+  render._t = setTimeout(() => app.classList.remove("enter"), 800);
   window.scrollTo(0,0);
 }
 
@@ -2029,6 +2095,26 @@ function drawBrandMark(doc, x, yTop, size){
   doc.setLineCap("butt"); doc.setLineJoin("miter");
 }
 
+// PDF cover brand row: mark + "HV TEST" on the left, test and document name on the right
+function drawCoverBrand(doc, x, y, rightX, tag){
+  drawBrandMark(doc, x, y - 4.8, 6);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
+  doc.setTextColor(23, 35, 28); doc.text("HV", x + 8, y - 0.5);
+  doc.setTextColor(18, 122, 79); doc.text("TEST", x + 8 + doc.getTextWidth("HV "), y - 0.5);
+  doc.setFontSize(8); doc.text(tag, rightX, y - 0.8, { align: "right", charSpace: 0.3 });
+}
+
+// PDF footer brand: small HV Test mark + "HV TEST" (HV dark, TEST green) + a label
+function drawFooterBrand(doc, x, baseline, label){
+  drawBrandMark(doc, x, baseline - 3.1, 4);
+  let cx = x + 5.6;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+  doc.setTextColor(23, 35, 28); doc.text("HV", cx, baseline); cx += doc.getTextWidth("HV ");
+  doc.setTextColor(18, 122, 79); doc.text("TEST", cx, baseline); cx += doc.getTextWidth("TEST");
+  doc.setFont("helvetica", "normal"); doc.setTextColor(111, 129, 119);
+  doc.text("  |  " + label, cx, baseline);
+}
+
 function brandIconSVG(size){
   size = size || 20;
   return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="12" fill="#127A4F"/><circle cx="16.5" cy="16.5" r="5.5" stroke="#FFFFFF" stroke-width="3" fill="none"/><circle cx="31.5" cy="16.5" r="5.5" stroke="#FFFFFF" stroke-width="3" fill="none"/><circle cx="16.5" cy="31.5" r="5.5" stroke="#FFFFFF" stroke-width="3" fill="none"/><circle cx="31.5" cy="31.5" r="7.5" fill="#FFC54D"/><path d="M28 31.6l2.5 2.5 4.8-5" stroke="#17231C" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -2036,7 +2122,7 @@ function brandIconSVG(size){
 function brandHeader(subtitle){
   return `<div class="brand-row">
     <span class="brand-icon">${brandIconSVG(22)}</span>
-    <span class="brand-word">HV TEST</span>
+    <span class="brand-word">HV <span class="brand-accent">TEST</span></span>
     ${subtitle ? `<span class="brand-sep">·</span><span class="brand-sub">${subtitle}</span>` : ``}
   </div>`;
 }
@@ -2071,15 +2157,16 @@ function renderQuiz(){
   }
 
   app.innerHTML = `
-    <div class="brand-row" style="margin-bottom:22px;"><span class="brand-icon">${brandIconSVG(20)}</span><span class="brand-word">HV TEST</span></div>
+    <div class="brand-row" style="margin-bottom:22px;"><span class="brand-icon">${brandIconSVG(20)}</span><span class="brand-word">HV <span class="brand-accent">TEST</span></span></div>
     <div class="quiz-header"><span>Question ${current+1} of ${QUESTIONS.length}</span><span>${pct}%</span></div>
-    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="progress-track"><div class="progress-fill" style="width:${lastProgressPct}%"></div></div>
     <p class="q-scenario serif">${q.text}</p>
     <div class="options" id="options-list">
       ${q.options.map((o,i) => `
         <button class="opt ${selected===i?'selected':''}" data-idx="${i}">
           <span class="letter">${String.fromCharCode(65+i)}</span>
           <span class="opt-text">${o.text}</span>
+          <svg class="opt-check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
         </button>`).join("")}
     </div>
     <div class="nav-row">
@@ -2089,8 +2176,24 @@ function renderQuiz(){
     </div>
   `;
 
-  document.querySelectorAll(".opt").forEach(btn => {
-    btn.addEventListener("click", () => { answers[current] = parseInt(btn.dataset.idx, 10); renderQuiz(); });
+  const fill = app.querySelector(".progress-fill");
+  requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.width = pct + "%"; }));
+  lastProgressPct = pct;
+
+  // Selecting an option updates in place (no re-render), so the transition can play
+  const optButtons = app.querySelectorAll(".opt");
+  const nextBtn = document.getElementById("next-btn");
+  optButtons.forEach(btn => {
+    btn.setAttribute("aria-pressed", btn.classList.contains("selected") ? "true" : "false");
+    btn.addEventListener("click", () => {
+      answers[current] = parseInt(btn.dataset.idx, 10);
+      optButtons.forEach(b => {
+        const on = b === btn;
+        b.classList.toggle("selected", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      nextBtn.disabled = false;
+    });
   });
   document.getElementById("back-btn").addEventListener("click", () => {
     if (current > 0) { recordTime(current); current--; render(); }
@@ -2117,7 +2220,7 @@ function renderConfirm(){
     </div>
   `;
   document.getElementById("review-btn").addEventListener("click", () => { screen = "quiz"; current = QUESTIONS.length - 1; render(); });
-  document.getElementById("submit-btn").addEventListener("click", () => { screen = "results"; render(); });
+  document.getElementById("submit-btn").addEventListener("click", () => { assessmentDoneAt = new Date(); screen = "results"; render(); });
 }
 
 function renderResults(){
@@ -2366,11 +2469,7 @@ async function downloadPdf(){
 
     // ---- Cover / header ----
     y = 26;
-    drawBrandMark(doc, marginX, y - 4.8, 6);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor.apply(doc, inkColor);
-    doc.text("HV TEST", marginX + 8, y - 0.5);
+    drawCoverBrand(doc, marginX, y, pageW - marginX, "MATURITY ASSESSMENT  |  REPORT");
     y += 10;
     doc.setFont("times", "normal");
     doc.setFontSize(22);
@@ -2388,7 +2487,7 @@ async function downloadPdf(){
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10.5);
     doc.setTextColor.apply(doc, inkColor);
-    const dateStr = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+    const dateStr = assessmentDateTimeText();
     [
       ["Name", userInfo.name],
       ["Age", String(userInfo.age)],
@@ -2596,12 +2695,14 @@ async function downloadPdf(){
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7.5);
       doc.setTextColor.apply(doc, faintColor);
-      doc.text("HV TEST  |  " + firstName + "'s Maturity Assessment", marginX, pageH - 11);
+      drawFooterBrand(doc, marginX, pageH - 11, "Maturity Assessment  |  " + firstName + "'s Report");
+      doc.setTextColor.apply(doc, faintColor);
       doc.text("Page " + p + " of " + pageCount, pageW - marginX, pageH - 11, { align: "right" });
     }
 
+    doc.setProperties({ title: "Maturity Assessment: Report for " + userInfo.name, subject: "HV Test | Maturity Assessment", author: "HV Test" });
     const blob = doc.output("blob");
-    const filename = sanitizeFilenamePart(userInfo.name) + "_Maturity_Assessment.pdf";
+    const filename = "HV_Test_Maturity_Assessment_Report_" + sanitizeFilenamePart(userInfo.name) + ".pdf";
 
     // Prefer the platform downloads capability if this page can reach it;
     // fall back to a direct browser download otherwise.
@@ -2650,7 +2751,9 @@ render();
     }
     btn.addEventListener("click", function () {
       var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      root.classList.add("theme-anim");
       root.setAttribute("data-theme", next);
+      clearTimeout(btn._t); btn._t = setTimeout(function () { root.classList.remove("theme-anim"); }, 450);
       try { localStorage.setItem("hv-theme", next); } catch (e) {}
       sync();
     });
