@@ -1460,6 +1460,7 @@ async function downloadPlanPdf(){
     const insights = buildInsights(sorted);
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "mm", format: "a4" });
+    await useBrandFont(doc);
     const pageW = 210, pageH = 297, mX = 20, cW = pageW - 2 * mX;
     const INK = [23,35,28], SOFT = [74,90,80], FAINT = [111,129,119], ACC = [18,122,79], LINE = [220,231,223];
     let y = 0;
@@ -2095,22 +2096,49 @@ function drawBrandMark(doc, x, yTop, size){
   doc.setLineCap("butt"); doc.setLineJoin("miter");
 }
 
+// Outfit (the HV TEST wordmark font) for PDFs, loaded once from the site; falls back to Helvetica
+let brandFontData = null;
+async function useBrandFont(doc){
+  if (brandFontData === null) {
+    try {
+      const load = async file => {
+        const res = await fetch("../../assets/fonts/" + file);
+        if (!res.ok) throw new Error(res.status);
+        const bytes = new Uint8Array(await res.arrayBuffer());
+        let bin = "";
+        for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+        return btoa(bin);
+      };
+      brandFontData = { bold: await load("Outfit-Bold.ttf"), semibold: await load("Outfit-SemiBold.ttf") };
+    } catch (e) { brandFontData = false; }
+  }
+  if (!brandFontData) return;
+  doc.addFileToVFS("Outfit-Bold.ttf", brandFontData.bold); doc.addFont("Outfit-Bold.ttf", "Outfit", "bold");
+  doc.addFileToVFS("Outfit-SemiBold.ttf", brandFontData.semibold); doc.addFont("Outfit-SemiBold.ttf", "Outfit", "semibold");
+  doc.hvBrandFont = true;
+}
+function brandFont(doc, weight){
+  if (doc.hvBrandFont) doc.setFont("Outfit", weight); else doc.setFont("helvetica", "bold");
+}
+
 // PDF cover brand row: mark + "HV TEST" on the left, test and document name on the right
 function drawCoverBrand(doc, x, y, rightX, tag){
   drawBrandMark(doc, x, y - 4.8, 6);
-  doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
-  doc.setTextColor(23, 35, 28); doc.text("HV", x + 8, y - 0.5);
-  doc.setTextColor(18, 122, 79); doc.text("TEST", x + 8 + doc.getTextWidth("HV "), y - 0.5);
-  doc.setFontSize(8); doc.text(tag, rightX, y - 0.8, { align: "right", charSpace: 0.3 });
+  brandFont(doc, "bold"); doc.setFontSize(12);
+  doc.setTextColor(23, 35, 28); doc.text("HV", x + 8, y - 0.3);
+  const testX = x + 8 + doc.getTextWidth("HV ");
+  brandFont(doc, "semibold"); doc.setTextColor(18, 122, 79); doc.text("TEST", testX, y - 0.3);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.text(tag, rightX, y - 0.8, { align: "right", charSpace: 0.3 });
 }
 
 // PDF footer brand: small HV Test mark + "HV TEST" (HV dark, TEST green) + a label
 function drawFooterBrand(doc, x, baseline, label){
   drawBrandMark(doc, x, baseline - 3.1, 4);
   let cx = x + 5.6;
-  doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+  brandFont(doc, "bold"); doc.setFontSize(8.5);
   doc.setTextColor(23, 35, 28); doc.text("HV", cx, baseline); cx += doc.getTextWidth("HV ");
-  doc.setTextColor(18, 122, 79); doc.text("TEST", cx, baseline); cx += doc.getTextWidth("TEST");
+  brandFont(doc, "semibold"); doc.setTextColor(18, 122, 79); doc.text("TEST", cx, baseline); cx += doc.getTextWidth("TEST");
+  doc.setFontSize(7.5);
   doc.setFont("helvetica", "normal"); doc.setTextColor(111, 129, 119);
   doc.text("  |  " + label, cx, baseline);
 }
@@ -2400,6 +2428,7 @@ async function downloadPdf(){
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "mm", format: "a4" });
+    await useBrandFont(doc);
     const pageW = 210, pageH = 297;
     const marginX = 20;
     const contentW = pageW - marginX * 2;
