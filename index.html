@@ -11,6 +11,9 @@
     document.documentElement.setAttribute("data-theme", t === "dark" ? "dark" : "light");
   })();
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
 <title>HV Test</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22%3E%3Crect width=%2248%22 height=%2248%22 rx=%2212%22 fill=%22%23127A4F%22/%3E%3Ccircle cx=%2216.5%22 cy=%2216.5%22 r=%225.5%22 stroke=%22%23FFFFFF%22 stroke-width=%223%22 fill=%22none%22/%3E%3Ccircle cx=%2231.5%22 cy=%2216.5%22 r=%225.5%22 stroke=%22%23FFFFFF%22 stroke-width=%223%22 fill=%22none%22/%3E%3Ccircle cx=%2216.5%22 cy=%2231.5%22 r=%225.5%22 stroke=%22%23FFFFFF%22 stroke-width=%223%22 fill=%22none%22/%3E%3Ccircle cx=%2231.5%22 cy=%2231.5%22 r=%227.5%22 fill=%22%23FFC54D%22/%3E%3Cpath d=%22M28 31.6l2.5 2.5 4.8-5%22 stroke=%22%2317231C%22 stroke-width=%222.6%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
 <meta name="description" content="Self-assessment tests by HV Test. Understand yourself. See your patterns. Grow from them.">
@@ -147,6 +150,29 @@
   .theme-toggle .icon-sun { display: none; }
   :root[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
   :root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+  html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
+    transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .35s ease !important;
+  }
+  .theme-toggle svg { transition: transform .45s cubic-bezier(.2,.7,.2,1); }
+  .theme-toggle:active svg { transform: rotate(40deg) scale(.9); }
+  @keyframes hv-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes hv-fade { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
+  }
+  main > * { animation: hv-rise .5s cubic-bezier(.2,.7,.2,1) both; }
+  main > *:nth-child(2) { animation-delay: .05s; }
+  main > *:nth-child(3) { animation-delay: .1s; }
+  main > *:nth-child(n+4) { animation-delay: .15s; }
+  .category { animation: hv-rise .5s cubic-bezier(.2,.7,.2,1) both; }
+  .card { transition: border-color .25s ease, box-shadow .25s ease, transform .25s cubic-bezier(.2,.7,.2,1); }
+  .cta { transition: letter-spacing .25s ease; }
+  a.card:hover .cta { letter-spacing: .02em; }
+
+  /* HV Test wordmark: Outfit, rounded geometric to match the icon */
+  .brand-word { font-family: "Outfit", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; font-size: 17px !important; font-weight: 700 !important; letter-spacing: 0.04em !important; color: var(--ink) !important; line-height: 1; }
+  .brand-word .brand-accent { color: var(--accent); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -157,7 +183,7 @@
 <main>
   <div class="brand-row">
     <svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="12" fill="#127A4F"/><circle cx="16.5" cy="16.5" r="5.5" stroke="#FFFFFF" stroke-width="3" fill="none"/><circle cx="31.5" cy="16.5" r="5.5" stroke="#FFFFFF" stroke-width="3" fill="none"/><circle cx="16.5" cy="31.5" r="5.5" stroke="#FFFFFF" stroke-width="3" fill="none"/><circle cx="31.5" cy="31.5" r="7.5" fill="#FFC54D"/><path d="M28 31.6l2.5 2.5 4.8-5" stroke="#17231C" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <span class="brand-word">HV TEST</span>
+    <span class="brand-word">HV <span class="brand-accent">TEST</span></span>
   </div>
 
   <h1 class="serif">All Tests</h1>
@@ -243,7 +269,9 @@
     }
     btn.addEventListener("click", function () {
       var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      root.classList.add("theme-anim");
       root.setAttribute("data-theme", next);
+      clearTimeout(btn._t); btn._t = setTimeout(function () { root.classList.remove("theme-anim"); }, 450);
       try { localStorage.setItem("hv-theme", next); } catch (e) {}
       sync();
     });
