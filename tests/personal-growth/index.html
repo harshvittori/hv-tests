@@ -4,20 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HV Personal Growth Test</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%233F5B4E%27/%3E%3Cpath d=%27M5.5%207v10M10.5%207v10M5.5%2012h5M13%207l3%2010%203-10%27 stroke=%27white%27 stroke-width=%271.9%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
-    --paper: #F3F1EA;
-    --paper-raised: #ECE8DE;
-    --ink: #23241F;
-    --ink-soft: #56564C;
-    --ink-faint: #8C8B7F;
-    --line: #D8D3C4;
+    --paper: #F8F7F2;
+    --paper-raised: #F0EEE7;
+    --ink: #2A2B26;
+    --ink-soft: #5E5E55;
+    --ink-faint: #8F8E83;
+    --line: #E4E0D5;
     --accent: #3F5B4E;
-    --accent-soft: #E4E9E1;
+    --accent-soft: #E9EEE7;
     --accent-ink: #24362D;
     --warn: #8A5A3B;
-    --primary-text: #F3F1EA;
+    --primary-text: #FFFFFF;
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -69,7 +70,7 @@
   .brandmark { font-size: 13px; color: var(--ink-faint); letter-spacing: 0.02em; margin-bottom: 40px; }
 
   .brand-row { display: flex; align-items: center; gap: 8px; margin-bottom: 40px; }
-  .brand-row .brand-icon { flex: none; display: flex; opacity: 0.75; }
+  .brand-row .brand-icon { flex: none; display: flex; }
   .brand-row .brand-word { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; color: var(--ink-soft); }
   .brand-row .brand-sep { font-size: 12px; color: var(--ink-faint); }
   .brand-row .brand-sub { font-size: 12px; color: var(--ink-faint); letter-spacing: 0.02em; }
@@ -83,7 +84,7 @@
   .howitworks .hiw-item .hiw-lead { font-size: 15px; font-weight: 600; color: var(--ink); margin: 0 0 3px; }
   .howitworks .hiw-item .hiw-sub { font-size: 14px; color: var(--ink-soft); margin: 0; }
   .intro-note { font-size: 13.5px; color: var(--ink-faint); margin: 0 0 32px; max-width: 48ch; }
-  h1.title { font-size: 36px; line-height: 1.18; margin: 0 0 20px; font-weight: 500; max-width: 16ch; }
+  h1.title { font-size: 36px; line-height: 1.18; margin: 0 0 20px; font-weight: 400; max-width: 16ch; }
   @media (max-width: 480px) { h1.title { font-size: 28px; } }
   p.lede { font-size: 18px; color: var(--ink-soft); max-width: 48ch; margin: 0 0 32px; }
   .rule { border: none; border-top: 1px solid var(--line); margin: 36px 0; }
@@ -96,7 +97,7 @@
 
   button.primary {
     background: var(--accent); color: var(--primary-text); border: none;
-    font-size: 16px; font-weight: 600; padding: 15px 26px; border-radius: 3px;
+    font-size: 16px; font-weight: 600; padding: 15px 26px; border-radius: 6px;
     cursor: pointer; font-family: inherit;
   }
   button.primary:active { opacity: 0.85; }
@@ -106,7 +107,7 @@
   }
   button.ghost {
     background: none; border: 1px solid var(--line); color: var(--ink);
-    font-size: 15px; padding: 13px 22px; border-radius: 3px; cursor: pointer; font-family: inherit;
+    font-size: 15px; padding: 13px 22px; border-radius: 6px; cursor: pointer; font-family: inherit;
   }
   button.ghost:active { background: var(--paper-raised); }
 
@@ -134,7 +135,7 @@
   .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; }
   .nav-row .spacer { flex: 1; }
 
-  .confirm-box { border: 1px solid var(--line); padding: 24px; border-radius: 3px; background: var(--paper-raised); }
+  .confirm-box { border: 1px solid var(--line); padding: 24px; border-radius: 6px; background: var(--paper-raised); }
   .confirm-box p { color: var(--ink-soft); margin: 0 0 20px; }
 
   .field { margin-bottom: 22px; }
@@ -142,7 +143,7 @@
   .field .hint { font-size: 12.5px; color: var(--ink-faint); margin-top: 6px; }
   .field input[type="text"], .field input[type="number"], .field select {
     width: 100%; font-family: inherit; font-size: 16px; color: var(--ink);
-    background: var(--paper); border: 1px solid var(--line); border-radius: 3px;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 6px;
     padding: 13px 14px; appearance: none;
   }
   .field select {
@@ -154,7 +155,7 @@
   .profession-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media (max-width: 420px) { .profession-grid { grid-template-columns: 1fr; } }
   .prof-opt {
-    border: 1px solid var(--line); border-radius: 3px; padding: 12px 14px;
+    border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px;
     background: none; color: var(--ink); font-family: inherit; font-size: 14.5px;
     text-align: left; cursor: pointer;
   }
@@ -167,7 +168,7 @@
   .score-tier { font-size: 17px; color: var(--ink-soft); margin-top: 10px; max-width: 52ch; }
 
   .download-box {
-    margin-top: 28px; padding: 20px; border: 1px solid var(--line); border-radius: 3px;
+    margin-top: 28px; padding: 20px; border: 1px solid var(--line); border-radius: 6px;
     background: var(--paper-raised); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
   }
   .download-box p { margin: 0; font-size: 14px; color: var(--ink-soft); max-width: 34ch; }
@@ -177,8 +178,8 @@
   .dim-row .dim-top { display: flex; justify-content: space-between; font-size: 14.5px; margin-bottom: 7px; }
   .dim-row .dim-name { font-weight: 600; }
   .dim-row .dim-score { color: var(--ink-faint); }
-  .bar-track { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
-  .bar-fill { height: 6px; background: var(--accent); border-radius: 3px; }
+  .bar-track { height: 6px; background: var(--line); border-radius: 6px; overflow: hidden; }
+  .bar-fill { height: 6px; background: var(--accent); border-radius: 6px; }
   .dim-row .dim-explain { font-size: 14px; color: var(--ink-soft); margin-top: 8px; }
 
   .section-label { font-size: 13px; color: var(--ink-faint); margin: 48px 0 14px; }
@@ -195,7 +196,7 @@
   .review-item .review-q-label { font-size: 12.5px; color: var(--ink-faint); margin-bottom: 6px; }
   .review-item .review-q-text { font-size: 16px; font-weight: 500; margin: 0 0 12px; }
   .review-item .review-answer-label { font-size: 12px; color: var(--ink-faint); margin-bottom: 3px; }
-  .review-item .review-answer-text { font-size: 14.5px; color: var(--ink); margin: 0 0 10px; padding: 10px 12px; background: var(--paper-raised); border-radius: 3px; }
+  .review-item .review-answer-text { font-size: 14.5px; color: var(--ink); margin: 0 0 10px; padding: 10px 12px; background: var(--paper-raised); border-radius: 6px; }
   .review-item .review-insight { font-size: 13.5px; color: var(--ink-soft); }
   .review-item .review-insight strong { color: var(--ink); font-weight: 600; }
 
@@ -205,7 +206,7 @@
   .plan-card h4 { margin: 0 0 4px; font-size: 18px; font-weight: 500; }
   .plan-card .plan-score { font-size: 13px; color: var(--ink-faint); margin-bottom: 14px; }
   .plan-card .plan-why { font-size: 14.5px; color: var(--ink-soft); margin: 0 0 14px; }
-  .plan-card .plan-daily { font-size: 14.5px; color: var(--ink); background: var(--accent-soft); padding: 12px 14px; border-radius: 3px; margin: 0 0 16px; }
+  .plan-card .plan-daily { font-size: 14.5px; color: var(--ink); background: var(--accent-soft); padding: 12px 14px; border-radius: 6px; margin: 0 0 16px; }
   .plan-card .plan-daily strong { color: var(--accent-ink); }
   .plan-weeks { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
   .plan-week { display: flex; gap: 14px; align-items: flex-start; }
@@ -213,7 +214,7 @@
   .plan-week .wk-text { font-size: 14.5px; color: var(--ink-soft); }
   .plan-card .plan-progress { font-size: 13.5px; color: var(--ink-soft); border-left: 2px solid var(--accent); padding-left: 12px; margin: 0 0 8px; }
   .plan-card .plan-progress strong { color: var(--ink); }
-  .plan-closing { font-size: 14px; color: var(--ink-soft); margin-top: 22px; padding: 16px; border: 1px solid var(--line); border-radius: 3px; }
+  .plan-closing { font-size: 14px; color: var(--ink-soft); margin-top: 22px; padding: 16px; border: 1px solid var(--line); border-radius: 6px; }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -1399,9 +1400,8 @@ async function downloadPlanPdf(){
 
     /* Cover */
     y = 26;
-    doc.setDrawColor(...INK); doc.setLineWidth(0.35);
-    doc.circle(mX + 2.6, y - 1.6, 2.6, "S"); doc.circle(mX + 2.6, y - 1.6, 1.6, "S"); doc.setFillColor(...INK); doc.circle(mX + 2.6, y - 1.6, 0.5, "F");
-    doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); col(INK); doc.text("HV VAULT", mX + 8, y - 0.5);
+    drawBrandMark(doc, mX, y - 4.6, 5.6, ACC);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10.5); col(INK); doc.text("HV TEST", mX + 8, y - 0.5);
     y += 12; doc.setFont("times", "normal"); doc.setFontSize(24); col(INK);
     doc.splitTextToSize(name + "'s Plan of Action", cW).forEach(l => { doc.text(l, mX, y); y += 9; });
     doc.setFont("helvetica", "normal"); doc.setFontSize(12.5); col(SOFT); doc.text("A 30-day maturity growth plan, built from your own answers", mX, y);
@@ -1536,7 +1536,7 @@ async function downloadPlanPdf(){
     const n = doc.internal.getNumberOfPages();
     for (let p = 1; p <= n; p++) { doc.setPage(p); doc.setDrawColor(...LINE); doc.setLineWidth(0.2); doc.line(mX, pageH - 16, pageW - mX, pageH - 16);
       doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); col(FAINT);
-      doc.text("HV VAULT  |  " + first + "'s Plan of Action", mX, pageH - 11); doc.text("Page " + p + " of " + n, pageW - mX, pageH - 11, { align: "right" }); }
+      doc.text("HV TEST  |  " + first + "'s Plan of Action", mX, pageH - 11); doc.text("Page " + p + " of " + n, pageW - mX, pageH - 11, { align: "right" }); }
     await savePdfDoc(doc, sanitizeFilenamePart(name) + "_Plan_of_Action.pdf");
     statusEl.textContent = "Your plan has been prepared.";
   } catch (e) {
@@ -1987,18 +1987,28 @@ function renderIntake(){
 
 function escapeAttr(s){ return (s || "").replace(/"/g, "&quot;"); }
 
-function vaultIconSVG(size){
-  size = size || 14;
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="12" r="10.5" stroke="currentColor" stroke-width="1.1"/>
-    <circle cx="12" cy="12" r="6.8" stroke="currentColor" stroke-width="1.1"/>
-    <circle cx="12" cy="12" r="2" fill="currentColor"/>
+// HV Test mark for PDFs: sage rounded tile with the HV monogram, matching the on-screen logo
+function drawBrandMark(doc, x, yTop, size, rgb){
+  const k = size / 24;
+  doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+  doc.roundedRect(x, yTop, size, size, 6 * k, 6 * k, "F");
+  doc.setDrawColor(255, 255, 255); doc.setLineWidth(1.9 * k); doc.setLineCap("round"); doc.setLineJoin("round");
+  const L = (x1, y1, x2, y2) => doc.line(x + x1 * k, yTop + y1 * k, x + x2 * k, yTop + y2 * k);
+  L(5.5, 7, 5.5, 17); L(10.5, 7, 10.5, 17); L(5.5, 12, 10.5, 12); L(13, 7, 16, 17); L(16, 17, 19, 7);
+  doc.setLineCap("butt"); doc.setLineJoin("miter");
+}
+
+function brandIconSVG(size){
+  size = size || 16;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <rect width="24" height="24" rx="6" style="fill:var(--accent)"/>
+    <path d="M5.5 7v10M10.5 7v10M5.5 12h5M13 7l3 10 3-10" style="stroke:var(--primary-text)" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`;
 }
 function brandHeader(subtitle){
   return `<div class="brand-row">
-    <span class="brand-icon">${vaultIconSVG(14)}</span>
-    <span class="brand-word">HV VAULT</span>
+    <span class="brand-icon">${brandIconSVG(18)}</span>
+    <span class="brand-word">HV TEST</span>
     ${subtitle ? `<span class="brand-sep">·</span><span class="brand-sub">${subtitle}</span>` : ``}
   </div>`;
 }
@@ -2033,7 +2043,7 @@ function renderQuiz(){
   }
 
   app.innerHTML = `
-    <div class="brand-row" style="margin-bottom:22px;"><span class="brand-icon">${vaultIconSVG(13)}</span><span class="brand-word">HV VAULT</span></div>
+    <div class="brand-row" style="margin-bottom:22px;"><span class="brand-icon">${brandIconSVG(16)}</span><span class="brand-word">HV TEST</span></div>
     <div class="quiz-header"><span>Question ${current+1} of ${QUESTIONS.length}</span><span>${pct}%</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
     <p class="q-scenario serif">${q.text}</p>
@@ -2328,17 +2338,11 @@ async function downloadPdf(){
 
     // ---- Cover / header ----
     y = 26;
-    // Small vault-ring mark, matching the on-screen brand icon
-    doc.setDrawColor.apply(doc, inkColor);
-    doc.setLineWidth(0.35);
-    doc.circle(marginX + 2.6, y - 1.6, 2.6, "S");
-    doc.circle(marginX + 2.6, y - 1.6, 1.6, "S");
-    doc.setFillColor.apply(doc, inkColor);
-    doc.circle(marginX + 2.6, y - 1.6, 0.5, "F");
+    drawBrandMark(doc, marginX, y - 4.6, 5.6, [63, 91, 78]);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10.5);
     doc.setTextColor.apply(doc, inkColor);
-    doc.text("HV VAULT", marginX + 8, y - 0.5);
+    doc.text("HV TEST", marginX + 8, y - 0.5);
     y += 10;
     doc.setFont("times", "normal");
     doc.setFontSize(22);
@@ -2564,7 +2568,7 @@ async function downloadPdf(){
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7.5);
       doc.setTextColor.apply(doc, faintColor);
-      doc.text("HV VAULT  |  " + firstName + "'s Maturity Assessment", marginX, pageH - 11);
+      doc.text("HV TEST  |  " + firstName + "'s Maturity Assessment", marginX, pageH - 11);
       doc.text("Page " + p + " of " + pageCount, pageW - marginX, pageH - 11, { align: "right" });
     }
 

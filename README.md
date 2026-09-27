@@ -1,6 +1,6 @@
-# HV Vault Tests
+# HV Test
 
-All HV Vault self-assessment tests in one place. The home page lists every test as a card, and each test lives in its own folder.
+All HV Test self-assessment tests in one place. The home page lists every test as a card, and each test lives in its own folder.
 
 **Live:** https://harshvittori.github.io/hv-tests/
 
