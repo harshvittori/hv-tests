@@ -1,9 +1,10 @@
 {
   "tests": [
     {
-      "slug": "personal-growth",
-      "url": "tests/personal-growth/",
-      "title": "HV Personal Growth Test",
+      "slug": "maturity-assessment",
+      "url": "tests/maturity-assessment/",
+      "title": "Maturity Assessment",
+      "category": "Personal Growth",
       "tagline": "How you actually think, react, and decide in real-life situations.",
       "description": "28 to 30 everyday scenarios scored across 10 areas like emotional control, decision-making, patience, and empathy. You get a score out of 100, a full report, and a personal 30-day plan as PDFs.",
       "questions": "28 to 30",

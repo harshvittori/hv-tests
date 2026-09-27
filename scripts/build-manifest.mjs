@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const testsDir = join(root, "tests");
 const outFile = join(root, "tests.json");
-const STATUSES = ["live", "coming-soon", "hidden"];
+const STATUSES = ["live", "coming-soon", "hidden", "moved"];
 const errors = [];
 const tests = [];
 
@@ -25,13 +25,14 @@ for (const slug of readdirSync(testsDir).sort()) {
   const status = meta.status || "live";
   if (!STATUSES.includes(status)) errors.push(`${slug}: status must be one of ${STATUSES.join(", ")}`);
   if (!meta.title) errors.push(`${slug}: test.json needs a "title"`);
-  if (status === "live" && !existsSync(join(dir, "index.html"))) errors.push(`${slug}: live test needs index.html`);
-  if (status === "hidden") continue;
+  if ((status === "live" || status === "moved") && !existsSync(join(dir, "index.html"))) errors.push(`${slug}: ${status} test needs index.html`);
+  if (status === "hidden" || status === "moved") continue;
 
   tests.push({
     slug,
     url: `tests/${slug}/`,
     title: meta.title,
+    category: meta.category || "More tests",
     tagline: meta.tagline || "",
     description: meta.description || "",
     questions: meta.questions ?? null,
