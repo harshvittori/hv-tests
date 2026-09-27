@@ -1661,6 +1661,7 @@ async function downloadPlanPdf(){
     body("A final word, " + first + ". " + PROF_FINAL[pk] + " The " + strengths[0].name.toLowerCase() + " and " + strengths[1].name.toLowerCase() + " you already show will carry you a long way. Add steady daily habits to them, and the rest will follow.", { color: INK, after: 10 });
     body("This plan is based on self-reported answers to hypothetical situations. It is a personal growth tool, not a clinical or professional psychological assessment.", { size: 8.5, color: FAINT, after: 0 });
 
+    await addMoreTestsPage(doc);
     const n = doc.internal.getNumberOfPages();
     for (let p = 1; p <= n; p++) { doc.setPage(p); doc.setDrawColor(...LINE); doc.setLineWidth(0.2); doc.line(mX, pageH - 16, pageW - mX, pageH - 16);
       doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); col(FAINT);
@@ -2164,6 +2165,49 @@ async function useBrandFont(doc){
 }
 function brandFont(doc, weight){
   if (doc.hvBrandFont) doc.setFont("Outfit", weight); else doc.setFont("helvetica", "bold");
+}
+
+// Closing page for both PDFs: invite to more tests, with the site link and a QR code
+const HV_TESTS_URL = "https://harshvittori.github.io/hv-tests/";
+async function addMoreTestsPage(doc){
+  try { if (!window.qrcode) await loadScriptOnce("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"); } catch (e) {}
+  doc.addPage();
+  const W = 210, cx = W / 2;
+  let y = 58;
+  drawBrandMark(doc, cx - 9, y, 18);
+  y += 30;
+  brandFont(doc, "bold"); doc.setFontSize(16);
+  const hvW = doc.getTextWidth("HV "); brandFont(doc, "semibold"); const testW = doc.getTextWidth("TEST");
+  let x0 = cx - (hvW + testW) / 2;
+  brandFont(doc, "bold"); doc.setTextColor(23, 35, 28); doc.text("HV", x0, y);
+  brandFont(doc, "semibold"); doc.setTextColor(18, 122, 79); doc.text("TEST", x0 + hvW, y);
+  y += 20;
+  doc.setFont("times", "normal"); doc.setFontSize(26); doc.setTextColor(23, 35, 28);
+  doc.text("Keep growing. Take more tests.", cx, y, { align: "center" });
+  y += 10;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(12); doc.setTextColor(74, 90, 80);
+  doc.splitTextToSize("Scan the QR code or visit the website to see every HV Test and try the next one.", 130)
+    .forEach(l => { doc.text(l, cx, y, { align: "center" }); y += 6; });
+  y += 8;
+  const size = 56;
+  if (window.qrcode) {
+    const qr = window.qrcode(0, "M"); qr.addData(HV_TESTS_URL); qr.make();
+    const n = qr.getModuleCount(), quiet = 4, cell = size / (n + quiet * 2), left = cx - size / 2;
+    doc.setFillColor(255, 255, 255); doc.setDrawColor(220, 231, 223); doc.setLineWidth(0.3);
+    doc.roundedRect(left - 3, y - 3, size + 6, size + 6, 4, 4, "FD");
+    doc.setFillColor(23, 35, 28);
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+      if (qr.isDark(r, c)) doc.rect(left + (c + quiet) * cell, y + (r + quiet) * cell, cell + 0.08, cell + 0.08, "F");
+    y += size + 14;
+  } else {
+    y += 6;
+  }
+  doc.setFont("helvetica", "bold"); doc.setFontSize(12.5); doc.setTextColor(18, 122, 79);
+  const shownUrl = HV_TESTS_URL.replace(/^https:\/\//, "").replace(/\/$/, "");
+  doc.textWithLink(shownUrl, cx - doc.getTextWidth(shownUrl) / 2, y, { url: HV_TESTS_URL });
+  y += 12;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(111, 129, 119);
+  doc.text("Free  |  No login  |  Your answers stay on your device", cx, y, { align: "center" });
 }
 
 // PDF cover brand row: mark + "HV TEST" on the left, test and document name on the right
@@ -2767,6 +2811,7 @@ async function downloadPdf(){
     body("This report reflects self-reported answers to hypothetical situations, and is intended as a personal reflection tool, not a clinical or scientific assessment.", { size: 8.5, color: faintColor, after: 0 });
 
     // Footer — subtle brand line + page number on every page
+    await addMoreTestsPage(doc);
     const pageCount = doc.internal.getNumberOfPages();
     for (let p = 1; p <= pageCount; p++) {
       doc.setPage(p);
