@@ -271,7 +271,163 @@
     "</article>";
   }
 
+  /* ---------- Scorecard as an image (1080 x 1350 PNG, 4:5 so it fits WhatsApp, Instagram and LinkedIn) ---------- */
+  function rr(ctx, x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function spaced(ctx, px) { if ("letterSpacing" in ctx) ctx.letterSpacing = px + "px"; }
+  function drawMark(ctx, x, y, size) {
+    var k = size / 48;
+    ctx.save(); ctx.translate(x, y); ctx.scale(k, k);
+    ctx.fillStyle = "#127A4F"; rr(ctx, 0, 0, 48, 48, 12); ctx.fill();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
+    [[16.5, 16.5], [31.5, 16.5], [16.5, 31.5]].forEach(function (c) { ctx.beginPath(); ctx.arc(c[0], c[1], 5.5, 0, Math.PI * 2); ctx.stroke(); });
+    ctx.fillStyle = "#FFC54D"; ctx.beginPath(); ctx.arc(31.5, 31.5, 7.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#17231C"; ctx.lineWidth = 2.6; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath(); ctx.moveTo(28, 31.6); ctx.lineTo(30.5, 34.1); ctx.lineTo(35.3, 29.1); ctx.stroke();
+    ctx.restore();
+  }
+  function fit(ctx, text, maxW, font, size, min) {
+    do { ctx.font = font.replace("{s}", size); } while (ctx.measureText(text).width > maxW && --size > min);
+    return size;
+  }
+  function wrap(ctx, text, maxW) {
+    var words = String(text).split(" "), lines = [], line = "";
+    words.forEach(function (w) { var t = line ? line + " " + w : w; if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; });
+    if (line) lines.push(line);
+    return lines;
+  }
+  var SERIF = "'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif";
+  var SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+  var MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
+
+  async function renderImage(rec) {
+    await loadQr();
+    try { await Promise.all([document.fonts.load("700 40px Outfit"), document.fonts.load("600 40px Outfit")]); } catch (e) {}
+    var W = 1080, H = 1350, L = 64, R = W - 64, saved = !!rec.id;
+    var cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    var ctx = cv.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+
+    // Hero
+    var g = ctx.createLinearGradient(0, 0, W, 440);
+    g.addColorStop(0, "#0F5A3B"); g.addColorStop(0.6, "#127A4F"); g.addColorStop(1, "#1A8E5E");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, 440);
+    ctx.fillStyle = "#FFC54D"; ctx.fillRect(0, 440, W, 6);
+    ctx.fillStyle = "#fff"; rr(ctx, L - 4, 52, 64, 64, 16); ctx.fill();
+    drawMark(ctx, L, 56, 56);
+    ctx.textBaseline = "alphabetic";
+    spaced(ctx, 1.5);
+    ctx.font = "700 40px Outfit," + SANS; ctx.fillStyle = "#fff"; ctx.fillText("HV", L + 78, 99);
+    var hvw = ctx.measureText("HV ").width;
+    ctx.font = "600 40px Outfit," + SANS; ctx.fillStyle = "#FFC54D"; ctx.fillText("TEST", L + 78 + hvw, 99);
+    spaced(ctx, 4); ctx.font = "700 19px " + SANS; ctx.fillStyle = "rgba(255,255,255,.82)"; ctx.textAlign = "right";
+    ctx.fillText("SKILL ASSESSMENT SCORECARD", R, 92); ctx.textAlign = "left";
+    spaced(ctx, 0);
+    fit(ctx, rec.name, 600, "400 {s}px " + SERIF, 70, 36);
+    ctx.fillStyle = "#fff"; ctx.fillText(rec.name, L, 222);
+    ctx.font = "400 30px " + SANS; ctx.fillStyle = "rgba(255,255,255,.86)"; ctx.fillText(rec.testTitle + "  |  " + rec.category, L, 272);
+    var meta = [["COMPLETED", dateText(rec.completedAt), SANS, 200], ["ID", saved ? rec.id : "Given when saved", saved ? MONO : SANS, 250], ["ANSWERED", rec.answered + " of " + rec.total, SANS, 0]];
+    var mx = L;
+    meta.forEach(function (m) {
+      spaced(ctx, 3); ctx.font = "700 17px " + SANS; ctx.fillStyle = "rgba(255,255,255,.7)"; ctx.fillText(m[0], mx, 346);
+      spaced(ctx, 0); ctx.font = "700 27px " + m[2]; ctx.fillStyle = "#fff"; ctx.fillText(m[1], mx, 386);
+      mx += Math.max(m[3], ctx.measureText(m[1]).width + 44);
+    });
+
+    // Ring
+    var cx = 872, cy = 262, r = 118;
+    ctx.lineWidth = 28; ctx.strokeStyle = "rgba(255,255,255,.18)"; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+    var sc = Math.max(0, Math.min(100, rec.score));
+    if (sc > 0) { ctx.strokeStyle = "#FFC54D"; ctx.lineCap = "round"; ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * sc / 100); ctx.stroke(); ctx.lineCap = "butt"; }
+    ctx.font = "600 96px " + SERIF; var sw = ctx.measureText(String(rec.score)).width;
+    ctx.font = "400 32px " + SERIF; var ow = ctx.measureText("/100").width;
+    ctx.fillStyle = "#fff"; ctx.font = "600 96px " + SERIF; ctx.fillText(String(rec.score), cx - (sw + ow) / 2, cy + 22);
+    ctx.font = "400 32px " + SERIF; ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.fillText("/100", cx - (sw + ow) / 2 + sw, cy + 22);
+    spaced(ctx, 2); ctx.textAlign = "center"; ctx.fillStyle = "#FFC54D";
+    fit(ctx, rec.level.toUpperCase(), 150, "700 {s}px " + SANS, 22, 14); ctx.fillText(rec.level.toUpperCase(), cx, cy + 66);
+    ctx.textAlign = "left"; spaced(ctx, 0);
+
+    // Skill bars
+    var label = function (t, x, y) { spaced(ctx, 3); ctx.font = "700 18px " + SANS; ctx.fillStyle = "#6F8177"; ctx.fillText(t, x, y); spaced(ctx, 0); };
+    label("SKILL-WISE SCORE  |  OUT OF 10", L, 510);
+    var y = 566, bx = 330, bw = 220;
+    (rec.skills || []).forEach(function (s) {
+      ctx.font = "400 27px " + SANS; ctx.fillStyle = "#17231C"; ctx.fillText(s.name, L, y);
+      ctx.fillStyle = "#E6EFE9"; rr(ctx, bx, y - 17, bw, 14, 7); ctx.fill();
+      if (s.score > 0) { ctx.fillStyle = barColor(s.score); rr(ctx, bx, y - 17, Math.max(14, bw * s.score / 10), 14, 7); ctx.fill(); }
+      ctx.font = "700 27px " + SANS; ctx.fillStyle = "#17231C"; ctx.textAlign = "right"; ctx.fillText(String(s.score), 600, y); ctx.textAlign = "left";
+      y += 53;
+    });
+    ctx.font = "400 17px " + SANS; ctx.fillStyle = "#6F8177";
+    ctx.fillText("0", bx, y - 18); ctx.textAlign = "center"; ctx.fillText("5", bx + bw / 2, y - 18); ctx.textAlign = "right"; ctx.fillText("10", bx + bw, y - 18); ctx.textAlign = "left";
+
+    // Strengths / Work on
+    var px = 648, pw = R - px;
+    var pill = function (py, title, items, fill, tc) {
+      var h = 64 + items.length * 36;
+      ctx.fillStyle = fill; rr(ctx, px, py, pw, h, 20); ctx.fill();
+      ctx.font = "700 26px " + SANS; ctx.fillStyle = tc; ctx.fillText(title, px + 26, py + 46);
+      ctx.font = "400 25px " + SANS; ctx.fillStyle = "#17231C";
+      items.forEach(function (n, i) {
+        var s = (rec.skills || []).filter(function (x) { return x.name === n; })[0];
+        var yy = py + 86 + i * 36;
+        ctx.beginPath(); ctx.arc(px + 32, yy - 8, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.fillText(n + (s ? "  " + s.score : ""), px + 48, yy);
+      });
+      return py + h + 22;
+    };
+    var py = pill(478, "Strengths", rec.strengths || [], "#E9F5EE", "#0B4F33");
+    py = pill(py, "Work on", rec.focus || [], "#FDF3E1", "#8A5A10");
+
+    // Performance level
+    label("PERFORMANCE LEVEL", px, py + 24);
+    var ly = py + 44;
+    LEVELS.forEach(function (lv) {
+      var on = lv[0] === rec.level, t = lv[0] + "  " + lv[1];
+      ctx.font = (on ? "700 " : "400 ") + "21px " + SANS;
+      var w = ctx.measureText(t).width + 30;
+      if (on) { ctx.fillStyle = "#127A4F"; rr(ctx, px, ly, w, 34, 17); ctx.fill(); ctx.fillStyle = "#fff"; }
+      else { ctx.strokeStyle = "#DCE7DF"; ctx.lineWidth = 2; rr(ctx, px, ly, w, 34, 17); ctx.stroke(); ctx.fillStyle = "#4A5A50"; }
+      ctx.fillText(t, px + 15, ly + 24);
+      ly += 40;
+    });
+
+    // Check strip
+    var sy = 1112;
+    ctx.fillStyle = "#F4F8F5"; ctx.fillRect(0, sy, W, H - sy);
+    ctx.fillStyle = "#DCE7DF"; ctx.fillRect(0, sy, W, 2);
+    var tx = L;
+    if (saved && window.qrcode) {
+      var q = window.qrcode(0, "M"); q.addData(verifyLink(rec.id)); q.make();
+      var n = q.getModuleCount(), qs = 176, cell = Math.floor((qs - 40) / n), off = (qs - cell * n) / 2;
+      ctx.fillStyle = "#fff"; rr(ctx, L, sy + 18, qs, qs, 14); ctx.fill(); ctx.strokeStyle = "#DCE7DF"; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = "#17231C";
+      for (var a = 0; a < n; a++) for (var b = 0; b < n; b++) if (q.isDark(a, b)) ctx.fillRect(L + off + b * cell, sy + 18 + off + a * cell, cell, cell);
+      tx = L + qs + 34;
+    }
+    var st = saved ? "Completed" : "Preview";
+    ctx.font = "700 21px " + SANS; var stw = ctx.measureText(st).width + 52;
+    ctx.fillStyle = saved ? "#DFF1E6" : "#FDF3E1"; rr(ctx, tx, sy + 34, stw, 40, 20); ctx.fill();
+    ctx.fillStyle = saved ? "#127A4F" : "#E3A23B"; ctx.beginPath(); ctx.arc(tx + 22, sy + 54, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = saved ? "#0B4F33" : "#8A5A10"; ctx.fillText(st, tx + 36, sy + 61);
+    ctx.font = "400 25px " + SANS; ctx.fillStyle = "#4A5A50";
+    if (saved) {
+      ctx.fillText("Check this record at", tx, sy + 116);
+      ctx.font = "700 25px " + SANS; ctx.fillStyle = "#127A4F"; ctx.fillText(VERIFY_SHOWN, tx, sy + 150);
+      ctx.font = "400 25px " + SANS; ctx.fillStyle = "#4A5A50"; ctx.fillText("with ID", tx, sy + 184);
+      var iw = ctx.measureText("with ID ").width; ctx.font = "700 25px " + MONO; ctx.fillStyle = "#17231C"; ctx.fillText(rec.id, tx + iw, sy + 184);
+    } else {
+      wrap(ctx, "Save it to get a unique ID and QR code, so anyone can check it at " + VERIFY_SHOWN + ".", R - tx).forEach(function (l, i) { ctx.fillText(l, tx, sy + 116 + i * 34); });
+    }
+    ctx.font = "400 19px " + SANS; ctx.fillStyle = "#6F8177";
+    ctx.fillText("Issued by HV Test. A self-assessment, not an accredited certification or qualification.", L, H - 20);
+    return cv;
+  }
+
   window.HVScorecard = {
+    renderImage: renderImage,
     issue: issue, lookup: lookup, cardHTML: cardHTML, loadQr: loadQr, normalizeId: normalizeId,
     verifyLink: verifyLink, dateText: dateText, barColor: barColor, LEVELS: LEVELS,
     VERIFY_URL: VERIFY_URL, VERIFY_SHOWN: VERIFY_SHOWN, ID_RE: ID_RE
