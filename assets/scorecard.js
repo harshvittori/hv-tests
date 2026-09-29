@@ -209,9 +209,10 @@
     ".hvsc .sc-v a{color:var(--g);font-weight:600}",
     ".hvsc .sc-status{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--gi);background:#DFF1E6;padding:3px 10px;border-radius:99px;margin-bottom:4px}",
     ".hvsc .sc-status::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--g)}",
+    ".hvsc .sc-status.sc-pre{color:#8A5A10;background:#FDF3E1}.hvsc .sc-status.sc-pre::before{background:#E3A23B}",
     ".hvsc .sc-disc{grid-column:1/-1;font-size:11.5px;color:var(--faint);border-top:1px dashed var(--ln);padding-top:8px;margin-top:4px}",
     "@media (max-width:480px){.hvsc .sc-hero{padding:18px 16px;gap:12px}.hvsc .sc-name{font-size:23px}.hvsc .sc-ring{width:100px;height:100px}",
-    ".hvsc .sc-ring strong{font-size:31px}.hvsc .sc-ring small{font-size:12px}.hvsc .sc-ring em{font-size:9px;max-width:74px}",
+    ".hvsc .sc-ring strong{font-size:31px}.hvsc .sc-ring small{font-size:12px}.hvsc .sc-ring em{font-size:8.5px;letter-spacing:.05em;max-width:78px}",
     ".hvsc .sc-body{padding:16px}.hvsc .sc-strip{padding:12px 16px}.hvsc .sc-bar{grid-template-columns:minmax(0,118px) 1fr 22px;font-size:12.5px;gap:8px}",
     ".hvsc .sc-scale{margin:0 30px 0 126px}.hvsc .sc-kind{font-size:9.5px;max-width:120px}}"
   ].join("\n");
@@ -223,11 +224,12 @@
   var MARK = '<svg width="24" height="24" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#127A4F"/><circle cx="16.5" cy="16.5" r="5.5" stroke="#fff" stroke-width="3" fill="none"/><circle cx="31.5" cy="16.5" r="5.5" stroke="#fff" stroke-width="3" fill="none"/><circle cx="16.5" cy="31.5" r="5.5" stroke="#fff" stroke-width="3" fill="none"/><circle cx="31.5" cy="31.5" r="7.5" fill="#FFC54D"/><path d="M28 31.6l2.5 2.5 4.8-5" stroke="#17231C" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   // opts.next: optional "Next 30 days" lines (shown to the owner, not saved in the record)
+  // A record without an id is a preview: same card, but no ID or QR until it is saved
   function cardHTML(rec, opts) {
     ensureCss();
     opts = opts || {};
     var C = 314.16, off = (C * (1 - Math.max(0, Math.min(100, rec.score)) / 100)).toFixed(2);
-    var link = verifyLink(rec.id);
+    var saved = !!rec.id, link = saved ? verifyLink(rec.id) : "";
     var list = function (items, withScore) {
       return "<ul>" + items.map(function (n) { return "<li>" + esc(n) + (withScore ? esc(skillOf(rec, n)) : "") + "</li>"; }).join("") + "</ul>";
     };
@@ -237,7 +239,7 @@
         "<div>" +
           '<h3 class="sc-name">' + esc(rec.name) + "</h3>" +
           '<p class="sc-test">' + esc(rec.testTitle) + " | " + esc(rec.category) + "</p>" +
-          '<div class="sc-meta"><span>Completed<b>' + esc(dateText(rec.completedAt)) + '</b></span><span>ID<b class="mono">' + esc(rec.id) +
+          '<div class="sc-meta"><span>Completed<b>' + esc(dateText(rec.completedAt)) + '</b></span><span>ID<b class="mono">' + (saved ? esc(rec.id) : "Given when saved") +
             "</b></span><span>Answered<b>" + esc(rec.answered) + " of " + esc(rec.total) + "</b></span></div>" +
         "</div>" +
         '<div class="sc-ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="11"/>' +
@@ -260,9 +262,10 @@
         }).join("") + "</div></div>" +
       "</div>" +
       '<div class="sc-strip">' +
-        (window.qrcode ? qrSvg(link, 72) : "") +
+        (saved ? (window.qrcode ? qrSvg(link, 72) : "") +
         '<div class="sc-v"><span class="sc-status">Completed</span><br>Check this record at <a href="' + esc(link) + '" target="_blank" rel="noopener">' + VERIFY_SHOWN +
-          "</a> with ID <b>" + esc(rec.id) + "</b></div>" +
+          "</a> with ID <b>" + esc(rec.id) + "</b></div>"
+        : '<div class="sc-v" style="grid-column:1/-1"><span class="sc-status sc-pre">Preview</span><br>Save it below to get a unique ID and QR code, so anyone can check it at ' + VERIFY_SHOWN + ".</div>") +
         '<div class="sc-disc">Issued by HV Test. A self-assessment, not an accredited certification or qualification.</div>' +
       "</div>" +
     "</article>";
