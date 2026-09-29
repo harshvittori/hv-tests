@@ -150,14 +150,14 @@
 
   /* ---------- Scorecard fonts, served from assets/fonts next to this script ---------- */
   var FONT_BASE = (function () { try { return new URL("fonts/", document.currentScript.src).href; } catch (e) { return "fonts/"; } })();
-  var FONTS = [["HVPlayfair", "PlayfairDisplay-SemiBold.ttf", "600"], ["HVMono", "JetBrainsMono-Medium.ttf", "500"],
+  var FONTS = [["HVSerif", "CormorantGaramond-SemiBold.ttf", "600"], ["HVSerif", "CormorantGaramond-SemiBoldItalic.ttf", "600", "italic"], ["HVMono", "JetBrainsMono-Medium.ttf", "500"],
                ["HVOutfit", "Outfit-Regular.ttf", "400"], ["HVOutfit", "Outfit-SemiBold.ttf", "600"], ["HVOutfit", "Outfit-Bold.ttf", "700"]];
   var fontsReady = null;
   function loadFonts() {
     if (!fontsReady) {
       fontsReady = Promise.all(FONTS.map(function (f) {
         if (!window.FontFace) return null;
-        var face = new FontFace(f[0], "url(" + FONT_BASE + f[1] + ")", { weight: f[2] });
+        var face = new FontFace(f[0], "url(" + FONT_BASE + f[1] + ")", { weight: f[2], style: f[3] || "normal" });
         return face.load().then(function (x) { document.fonts.add(x); }, function () {});
       })).catch(function () {});
     }
@@ -190,7 +190,7 @@
     ".hvsc .sc-word b{color:var(--amber);font-weight:600}",
     ".hvsc .sc-word svg{border-radius:7px;box-shadow:0 0 0 1.5px rgba(255,255,255,.55)}",
     ".hvsc .sc-kind{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.8);text-align:right}",
-    ".hvsc .sc-name{font:600 28px/1.15 HVPlayfair,'Iowan Old Style',Georgia,serif;margin:4px 0 4px;overflow-wrap:anywhere}",
+    ".hvsc .sc-name{font:italic 600 34px/1.1 HVSerif,'Iowan Old Style',Georgia,serif;margin:4px 0 4px;overflow-wrap:anywhere}",
     ".hvsc .sc-test{margin:0;color:rgba(255,255,255,.85);font-size:13.5px}",
     ".hvsc .sc-meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px}",
     ".hvsc .sc-meta span{display:grid;gap:2px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7)}",
@@ -199,7 +199,7 @@
     ".hvsc .sc-ring{position:relative;width:128px;height:128px}",
     ".hvsc .sc-ring svg{width:100%;height:100%;display:block}",
     ".hvsc .sc-ring div{position:absolute;inset:0;display:grid;place-items:center;text-align:center}",
-    ".hvsc .sc-ring strong{font:600 40px/1 HVPlayfair,'Iowan Old Style',Georgia,serif}",
+    ".hvsc .sc-ring strong{font:600 46px/1 HVSerif,'Iowan Old Style',Georgia,serif}",
     ".hvsc .sc-ring small{font-size:14px;opacity:.8}",
     ".hvsc .sc-ring em{display:block;font-style:normal;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-top:5px;max-width:90px;line-height:1.25}",
     ".hvsc .sc-body{display:grid;gap:18px;padding:20px 22px}",
@@ -281,9 +281,8 @@
       "</div>" +
       '<div class="sc-strip">' +
         (saved ? (window.qrcode ? qrSvg(link, 72) : "") +
-        '<div class="sc-v"><span class="sc-status">Completed</span><br>Check this record at <a href="' + esc(link) + '" target="_blank" rel="noopener">' + VERIFY_SHOWN +
-          "</a> with ID <b>" + esc(rec.id) + "</b></div>"
-        : '<div class="sc-v" style="grid-column:1/-1"><span class="sc-status sc-pre">Preview</span><br>Save it below to get a unique ID and QR code, so anyone can check it at ' + VERIFY_SHOWN + ".</div>") +
+        '<div class="sc-v"><span class="sc-status">Completed</span><br>Scan the QR code to check this scorecard.<br>ID <b>' + esc(rec.id) + "</b></div>"
+        : '<div class="sc-v" style="grid-column:1/-1"><span class="sc-status sc-pre">Preview</span><br>Save it below to get a unique ID and QR code, so anyone can scan and check it.</div>') +
         '<div class="sc-disc">Issued by HV Test. A self-assessment, not an accredited certification or qualification.</div>' +
       "</div>" +
     "</article>";
@@ -316,7 +315,7 @@
     if (line) lines.push(line);
     return lines;
   }
-  var SERIF = "HVPlayfair,'Iowan Old Style',Georgia,serif";
+  var SERIF = "HVSerif,'Iowan Old Style',Georgia,serif";
   var SANS = "HVOutfit,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
   var MONO = "HVMono,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
 
@@ -348,7 +347,7 @@
     ctx.fillText("SKILL ASSESSMENT SCORECARD", R, 92); ctx.textAlign = "left";
     spaced(ctx, 4); ctx.font = "600 17px " + SANS; ctx.fillStyle = DIM; ctx.fillText("SCORECARD FOR", L, 158);
     spaced(ctx, 0);
-    fit(ctx, rec.name, 580, "600 {s}px " + SERIF, 74, 36);
+    fit(ctx, rec.name, 590, "italic 600 {s}px " + SERIF, 88, 40);
     ctx.fillStyle = "#fff"; ctx.fillText(rec.name, L, 238);
     ctx.font = "400 29px " + SANS; ctx.fillStyle = MINT; ctx.fillText(rec.testTitle + "   \u00B7   " + rec.category, L, 286);
     ctx.fillStyle = "#26704F"; ctx.fillRect(L, 316, 560, 2);
@@ -364,9 +363,9 @@
     ctx.lineWidth = 24; ctx.strokeStyle = "#216C4C"; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
     var sc = Math.max(0, Math.min(100, rec.score));
     if (sc > 0) { ctx.strokeStyle = GOLD; ctx.lineCap = "round"; ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * sc / 100); ctx.stroke(); ctx.lineCap = "butt"; }
-    ctx.font = "600 100px " + SERIF; var sw = ctx.measureText(String(rec.score)).width;
+    ctx.font = "600 116px " + SERIF; var sw = ctx.measureText(String(rec.score)).width;
     ctx.font = "400 30px " + SANS; var ow = ctx.measureText("/100").width;
-    ctx.fillStyle = "#fff"; ctx.font = "600 100px " + SERIF; ctx.fillText(String(rec.score), cx - (sw + ow) / 2, cy + 20);
+    ctx.fillStyle = "#fff"; ctx.font = "600 116px " + SERIF; ctx.fillText(String(rec.score), cx - (sw + ow) / 2, cy + 20);
     ctx.font = "400 30px " + SANS; ctx.fillStyle = MINT; ctx.fillText("/100", cx - (sw + ow) / 2 + sw, cy + 20);
     spaced(ctx, 3); ctx.textAlign = "center"; ctx.fillStyle = GOLD;
     fit(ctx, rec.level.toUpperCase(), 150, "600 {s}px " + SANS, 20, 13); ctx.fillText(rec.level.toUpperCase(), cx, cy + 62);
@@ -437,12 +436,11 @@
     ctx.fillStyle = saved ? "#0B4F33" : "#8A5A10"; ctx.fillText(st, tx + 36, sy + 61);
     ctx.font = "400 25px " + SANS; ctx.fillStyle = "#4A5A50";
     if (saved) {
-      ctx.fillText("Check this record at", tx, sy + 116);
-      ctx.font = "700 25px " + SANS; ctx.fillStyle = "#127A4F"; ctx.fillText(VERIFY_SHOWN, tx, sy + 150);
-      ctx.font = "400 25px " + SANS; ctx.fillStyle = "#4A5A50"; ctx.fillText("with ID", tx, sy + 184);
-      var iw = ctx.measureText("with ID ").width; ctx.font = "700 25px " + MONO; ctx.fillStyle = "#17231C"; ctx.fillText(rec.id, tx + iw, sy + 184);
+      ctx.fillText("Scan the QR code to check this scorecard.", tx, sy + 122);
+      ctx.font = "400 25px " + SANS; ctx.fillStyle = "#4A5A50"; ctx.fillText("ID", tx, sy + 168);
+      var iw = ctx.measureText("ID  ").width; ctx.font = "500 27px " + MONO; ctx.fillStyle = "#17231C"; ctx.fillText(rec.id, tx + iw, sy + 168);
     } else {
-      wrap(ctx, "Save it to get a unique ID and QR code, so anyone can check it at " + VERIFY_SHOWN + ".", R - tx).forEach(function (l, i) { ctx.fillText(l, tx, sy + 116 + i * 34); });
+      wrap(ctx, "Save it to get a unique ID and QR code, so anyone can scan and check it.", R - tx).forEach(function (l, i) { ctx.fillText(l, tx, sy + 116 + i * 34); });
     }
     ctx.font = "400 19px " + SANS; ctx.fillStyle = "#6F8177";
     ctx.fillText("Issued by HV Test. A self-assessment, not an accredited certification or qualification.", L, H - 20);

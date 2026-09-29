@@ -2274,7 +2274,8 @@ async function useBrandFont(doc){
       // Scorecard page fonts; if any fails, that page falls back to the built-in fonts
       try {
         brandFontData.regular = await load("Outfit-Regular.ttf");
-        brandFontData.serif = await load("PlayfairDisplay-SemiBold.ttf");
+        brandFontData.serif = await load("CormorantGaramond-SemiBold.ttf");
+        brandFontData.serifItalic = await load("CormorantGaramond-SemiBoldItalic.ttf");
         brandFontData.mono = await load("JetBrainsMono-Medium.ttf");
       } catch (e) { brandFontData.regular = null; }
     } catch (e) { brandFontData = false; }
@@ -2285,15 +2286,17 @@ async function useBrandFont(doc){
   doc.hvBrandFont = true;
   if (brandFontData.regular) {
     doc.addFileToVFS("Outfit-Regular.ttf", brandFontData.regular); doc.addFont("Outfit-Regular.ttf", "Outfit", "normal");
-    doc.addFileToVFS("PlayfairDisplay-SemiBold.ttf", brandFontData.serif); doc.addFont("PlayfairDisplay-SemiBold.ttf", "Playfair", "semibold");
+    doc.addFileToVFS("CormorantGaramond-SemiBold.ttf", brandFontData.serif); doc.addFont("CormorantGaramond-SemiBold.ttf", "Cormorant", "semibold");
+    doc.addFileToVFS("CormorantGaramond-SemiBoldItalic.ttf", brandFontData.serifItalic); doc.addFont("CormorantGaramond-SemiBoldItalic.ttf", "Cormorant", "semibolditalic");
     doc.addFileToVFS("JetBrainsMono-Medium.ttf", brandFontData.mono); doc.addFont("JetBrainsMono-Medium.ttf", "JetBrainsMono", "medium");
     doc.hvScorecardFonts = true;
   }
 }
-// Scorecard type: Playfair for name and score, Outfit for text, JetBrains Mono for the ID (built-in fonts as fallback)
+// Scorecard type: Cormorant Garamond (italic for the name) for name and score, Outfit for text, JetBrains Mono for the ID (built-in fonts as fallback)
 function scFont(doc, kind){
   const ok = doc.hvScorecardFonts;
-  if (kind === "serif") doc.setFont(ok ? "Playfair" : "times", ok ? "semibold" : "bold");
+  if (kind === "serif") doc.setFont(ok ? "Cormorant" : "times", ok ? "semibold" : "bold");
+  else if (kind === "name") doc.setFont(ok ? "Cormorant" : "times", ok ? "semibolditalic" : "bolditalic");
   else if (kind === "mono") doc.setFont(ok ? "JetBrainsMono" : "courier", ok ? "medium" : "bold");
   else if (kind === "strong") doc.setFont(ok ? "Outfit" : "helvetica", ok ? "semibold" : "bold");
   else doc.setFont(ok ? "Outfit" : "helvetica", "normal");
@@ -2803,9 +2806,9 @@ function drawScorecardPage(doc, rec, next){
 
   scFont(doc, "strong"); doc.setFontSize(7); doc.setTextColor(...DIM);
   spaced("SCORECARD FOR", L, 38, 0.8);
-  let nameSize = 34;
-  scFont(doc, "serif");
-  do { doc.setFontSize(nameSize); } while (doc.getTextWidth(rec.name) > 112 && --nameSize > 18);
+  let nameSize = 40;
+  scFont(doc, "name");
+  do { doc.setFontSize(nameSize); } while (doc.getTextWidth(rec.name) > 114 && --nameSize > 20);
   doc.setTextColor(255, 255, 255);
   doc.text(doc.splitTextToSize(rec.name, 112)[0], L, 51);
   scFont(doc, "normal"); doc.setFontSize(11.5); doc.setTextColor(...MINT);
@@ -2830,9 +2833,9 @@ function drawScorecardPage(doc, rec, next){
     doc.lines(pts.slice(1).map((p, i) => [p[0] - pts[i][0], p[1] - pts[i][1]]), pts[0][0], pts[0][1], [1, 1], "S", false);
     doc.setLineCap("butt"); doc.setLineJoin("miter");
   }
-  scFont(doc, "serif"); doc.setFontSize(36); const sw = doc.getTextWidth(String(rec.score));
+  scFont(doc, "serif"); doc.setFontSize(42); const sw = doc.getTextWidth(String(rec.score));
   scFont(doc, "normal"); doc.setFontSize(11); const ow = doc.getTextWidth("/100");
-  scFont(doc, "serif"); doc.setFontSize(36); doc.setTextColor(255, 255, 255); doc.text(String(rec.score), cx - (sw + ow) / 2, cy + 3.5);
+  scFont(doc, "serif"); doc.setFontSize(42); doc.setTextColor(255, 255, 255); doc.text(String(rec.score), cx - (sw + ow) / 2, cy + 3.5);
   scFont(doc, "normal"); doc.setFontSize(11); doc.setTextColor(...MINT); doc.text("/100", cx - (sw + ow) / 2 + sw, cy + 3.5);
   scFont(doc, "strong"); doc.setFontSize(rec.level.length > 12 ? 6 : 7); doc.setTextColor(...GOLD);
   spaced(rec.level.toUpperCase(), cx, cy + 11, 0.7, "center");
@@ -2909,13 +2912,11 @@ function drawScorecardPage(doc, rec, next){
   spaced(saved ? "COMPLETED" : "PREVIEW", vx + 5.8, sy + 10.1, 0.5);
   scFont(doc, "normal"); doc.setFontSize(9.5); doc.setTextColor(74, 90, 80);
   if (saved) {
-    doc.text("Check this record at", vx, sy + 18.5);
-    scFont(doc, "strong"); doc.setTextColor(18, 122, 79);
-    scFont(doc, "normal"); const pre = doc.getTextWidth("Check this record at ");
-    scFont(doc, "strong"); doc.textWithLink(HVScorecard.VERIFY_SHOWN, vx + pre, sy + 18.5, { url: link });
-    scFont(doc, "normal"); doc.setTextColor(74, 90, 80); doc.text("with ID", vx, sy + 24.5);
-    const iw = doc.getTextWidth("with ID ");
-    scFont(doc, "mono"); doc.setFontSize(10); doc.setTextColor(23, 35, 28); doc.text(rec.id, vx + iw, sy + 24.5);
+    doc.text("Scan the QR code to check this scorecard.", vx, sy + 18.5);
+    doc.text("ID", vx, sy + 24.8);
+    const iw = doc.getTextWidth("ID  ");
+    scFont(doc, "mono"); doc.setFontSize(10.5); doc.setTextColor(23, 35, 28); doc.text(rec.id, vx + iw, sy + 24.8);
+    if (window.qrcode) doc.link(L, sy + 4.5, q, q, { url: link });
   } else {
     doc.splitTextToSize("This copy has no check ID. Use \"Add ID and QR code\" on your results page to get one, then download again.", 110)
       .forEach((l, i) => doc.text(l, vx, sy + 18.5 + i * 5));
