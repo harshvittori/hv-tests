@@ -1,0 +1,16 @@
+{
+  "title": "Strengths Finder",
+  "category": "Personal Growth",
+  "tagline": "Find what you are naturally good at, with real examples.",
+  "description": "Everyday situations that show your natural strengths, like problem solving, teamwork and learning. You get your top strengths, how to talk about them in an interview, and where to use them.",
+  "questions": "about 30",
+  "minutes": 10,
+  "outputs": [
+    "Your top 5 strengths",
+    "Strengths Report PDF",
+    "Interview answer guide"
+  ],
+  "status": "coming-soon",
+  "order": 2,
+  "added": "2026-09-29"
+}

@@ -17,6 +17,60 @@
       "status": "live",
       "order": 1,
       "added": "2026-09-27"
+    },
+    {
+      "slug": "strengths-finder",
+      "url": "tests/strengths-finder/",
+      "title": "Strengths Finder",
+      "category": "Personal Growth",
+      "tagline": "Find what you are naturally good at, with real examples.",
+      "description": "Everyday situations that show your natural strengths, like problem solving, teamwork and learning. You get your top strengths, how to talk about them in an interview, and where to use them.",
+      "questions": "about 30",
+      "minutes": 10,
+      "outputs": [
+        "Your top 5 strengths",
+        "Strengths Report PDF",
+        "Interview answer guide"
+      ],
+      "status": "coming-soon",
+      "order": 2,
+      "added": "2026-09-29"
+    },
+    {
+      "slug": "communication-style",
+      "url": "tests/communication-style/",
+      "title": "Communication Style",
+      "category": "Personal Growth",
+      "tagline": "How clearly you speak, listen and explain.",
+      "description": "Real conversations at work, in interviews and at home. See how you come across, where you ramble or hold back, and get simple exercises to speak with more clarity.",
+      "questions": "about 25",
+      "minutes": 8,
+      "outputs": [
+        "Your communication style",
+        "Communication Report PDF",
+        "7-day practice plan"
+      ],
+      "status": "coming-soon",
+      "order": 3,
+      "added": "2026-09-29"
+    },
+    {
+      "slug": "consistency-check",
+      "url": "tests/consistency-check/",
+      "title": "Consistency Check",
+      "category": "Personal Growth",
+      "tagline": "Why you start strong and then stop, and how to keep going.",
+      "description": "Honest questions about routines, procrastination and restarting after a bad week. You get a consistency score, what usually breaks your streak, and a simple daily plan to stay on track.",
+      "questions": "about 25",
+      "minutes": 8,
+      "outputs": [
+        "Consistency score out of 100",
+        "Consistency Report PDF",
+        "30-day habit plan"
+      ],
+      "status": "coming-soon",
+      "order": 4,
+      "added": "2026-09-29"
     }
   ]
 }

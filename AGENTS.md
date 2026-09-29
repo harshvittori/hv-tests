@@ -8,6 +8,7 @@ Read this before changing anything. It explains what this project is, how it is 
 
 - All Tests page (hub): https://harshvittori.github.io/hv-tests/
 - Test 1, **Maturity Assessment** (category **Personal Growth**): https://harshvittori.github.io/hv-tests/tests/maturity-assessment/
+- Coming soon (status `coming-soon`, greyed cards on the hub, no page yet), all in **Personal Growth**: Strengths Finder (`tests/strengths-finder/`), Communication Style (`tests/communication-style/`), Consistency Check (`tests/consistency-check/`).
 - Tagline used everywhere: "Understand yourself. See your patterns. Grow from them."
 
 ## 2. Owner and working style
@@ -171,3 +172,4 @@ All on 27 Sep 2026 unless noted.
 - **Link previews (OG tags + images)** because shared WhatsApp links showed no image or description.
 - **SEO basics:** titles and visible text with "HV Test by Harsh Vittori", canonical links, JSON-LD, auto-generated sitemap.xml, because searching "Harsh Vittori HV Test" found nothing (site was new and never indexed).
 - **This file (AGENTS.md)** added so any AI assistant can pick up the full context; `CLAUDE.md` points here.
+- **29 Sep 2026: three coming-soon tests** in Personal Growth (Strengths Finder, Communication Style, Consistency Check), picked to match the HV World story (knowing your strengths, communication, consistency). Only `test.json` for now; add `index.html` and set `status` to `live` when each one is built.
