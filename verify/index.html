@@ -113,6 +113,7 @@
   .check button:disabled { opacity: .6; cursor: default; }
   .check button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .result { min-height: 40px; }
+  .sc-img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; border-radius: 16px; border: 1px solid var(--line); background: var(--paper-raised); box-shadow: 0 14px 34px -20px rgba(12,40,26,.45); }
   .banner { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 12px; margin-bottom: 16px; }
   .banner svg { flex: none; margin-top: 2px; }
   .banner b { display: block; font-size: 16px; }
@@ -203,12 +204,13 @@
     document.title = "Scorecard " + r.id + " | HV Test";
     out.innerHTML =
       '<div class="banner ok">' + OK + "<div><b>This is a genuine HV Test scorecard</b><span>Issued by HV Test on " + esc(HVScorecard.dateText(r.completedAt)) + " for " + esc(r.name) + ". The details below are exactly as saved.</span></div></div>" +
-      HVScorecard.cardHTML(r) +
+      '<img class="sc-img" id="sc-img" alt="HV Test Skill Assessment Scorecard for ' + esc(r.name) + ': ' + esc(r.testTitle) + ', score ' + esc(r.score) + ' out of 100, ' + esc(r.level) + ', ID ' + esc(r.id) + '">' +
       '<div class="facts">' +
         "<div><h2>What this confirms</h2><ul><li>HV Test issued this scorecard with this ID.</li><li>The name, date, score, level and skill-wise marks are as recorded when it was issued.</li><li>The record can't be edited after it's issued.</li></ul></div>" +
         "<div><h2>What it doesn't confirm</h2><ul><li>It's a self-assessment: scores come from the person's own answers.</li><li>HV Test doesn't check identity. The name is the one the person entered.</li><li>It is not an accredited certification or qualification.</li></ul></div>" +
       "</div>" +
       '<a class="more" href="../tests/' + encodeURIComponent(r.test) + '/">Take the ' + esc(r.testTitle) + " yourself</a>";
+    HVScorecard.renderImage(r).then(function (cv) { var img = document.getElementById("sc-img"); if (img) img.src = cv.toDataURL("image/png"); });
   }
 
   form.addEventListener("submit", function (e) { e.preventDefault(); check(input.value, false); });
