@@ -4,7 +4,7 @@ Read this before changing anything. It explains what this project is, how it is 
 
 ## 1. What this is
 
-**HV Test** is a set of free, browser-only self-assessment tests for personal growth, made by Harsh Goyal (GitHub `harshvittori`). People take a test, get a score, and download personal PDFs. No login, no server, nothing is stored or sent anywhere.
+**HV Test** is a set of free, browser-only self-assessment tests for personal growth, made by Harsh Goyal (GitHub `harshvittori`). People take a test, get a score, and download personal PDFs. No login. Answers never leave the browser. The only thing ever stored is an optional Skill Assessment Scorecard summary, and only when the person asks for one (see section 6, Scorecard).
 
 - All Tests page (hub): https://harshvittori.github.io/hv-tests/
 - Test 1, **Maturity Assessment** (category **Personal Growth**): https://harshvittori.github.io/hv-tests/tests/maturity-assessment/
@@ -47,6 +47,8 @@ assets/
   fonts/Outfit-Bold.ttf, Outfit-SemiBold.ttf   Embedded in PDFs for the wordmark (OFL, see assets/fonts/README.md)
   icons/icon-32.png, icon-192.png, icon-512.png, apple-touch-icon.png
   og/hub.png                       Link preview image for the hub
+  scorecard.js                     Shared Skill Assessment Scorecard code: ID, save/look up in Firestore, on-screen card (design B)
+verify/index.html                  Check a scorecard by ID (noindex). Reads #HVT-XX-XXXX-XXXX from the URL
 README.md                          Human docs, including "Add a new test"
 ```
 
@@ -124,6 +126,50 @@ Single file `tests/maturity-assessment/index.html`. Only external scripts: jsPDF
 - Last page of both: centred "Keep growing. Take more tests." with a vector QR code and clickable link to the hub, and "Free | No login | Your answers stay on your device".
 - Helpers: `drawBrandMark`, `drawCoverBrand`, `drawFooterBrand`, `useBrandFont`, `addMoreTestsPage`, `savePdfDoc`/`saveBlob`, `downloadBothZip`.
 
+### Skill Assessment Scorecard (added 29 Sep 2026)
+- After results, a "Get your scorecard" box: the person confirms the name, reads what is saved, and clicks **Create my scorecard**. Then the design B card shows on screen (green hero, amber score ring, skill-wise bars out of 10, Strengths / Work on / Next 30 days, performance level scale, QR, ID, verify link, disclaimer) with **Scorecard PDF**, **Copy check link** and **Share**.
+- Wording is fixed: "Skill Assessment Scorecard", "Issued by HV Test", "A self-assessment, not an accredited certification or qualification". Never use certificate, certified, accredited, passed/failed or officially recognised. HV Test is not affiliated with any university, government body or certification authority.
+- ID: `HVT-<test code>-XXXX-XXXX` from `23456789ABCDEFGHJKLMNPQRSTUVWXYZ` (crypto random). Maturity Assessment code is `MA`; give each new test its own two letters.
+- Saved record (Firestore REST, project `harsh-reset`, collection `scorecards`, doc id = ID): `v, id, name, test, testTitle, category, completedAt, score, level, answered, total, skills[{name,score}], strengths[], focus[]`. Answers, age, profession and "Next 30 days" are not saved. Skill score = round(dimension score / 10).
+- App Check token (reCAPTCHA Enterprise, same key as HV Vault) is sent only on harshvittori.github.io.
+- PDF: one A4 page, `HV_Test_Maturity_Assessment_Scorecard_<Name>.pdf`, same layout, QR and link to `verify/#ID`. Not part of the ZIP.
+- Verify page shows "This is a genuine HV Test scorecard", the card, and what it does and doesn't confirm (self-assessment, identity not checked, not accredited).
+- Honest limit: scores are computed in the browser, so a determined person could create a record through the API with made-up scores. The rules limit shape and size; App Check enforcement on Firestore raises the bar. Records can't be edited after creation.
+- **Firestore rules (set in the Firebase console, merged with the HV Vault/Reset rule):**
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    match /scorecards/{id} {
+      allow get: if true;
+      allow list, update, delete: if false;
+      allow create: if id.matches('HVT-[A-Z]{2}-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}')
+        && request.resource.data.keys().hasOnly(['v','id','name','test','testTitle','category','completedAt','score','level','answered','total','skills','strengths','focus'])
+        && request.resource.data.v == 1
+        && request.resource.data.id == id
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+        && request.resource.data.test is string && request.resource.data.test.size() <= 60
+        && request.resource.data.testTitle is string && request.resource.data.testTitle.size() <= 80
+        && request.resource.data.category is string && request.resource.data.category.size() <= 60
+        && request.resource.data.level is string && request.resource.data.level.size() <= 40
+        && request.resource.data.completedAt is timestamp
+        && request.resource.data.completedAt > request.time - duration.value(2, 'd')
+        && request.resource.data.completedAt < request.time + duration.value(10, 'm')
+        && request.resource.data.score is int && request.resource.data.score >= 0 && request.resource.data.score <= 100
+        && request.resource.data.answered is int && request.resource.data.total is int
+        && request.resource.data.answered >= 0 && request.resource.data.answered <= request.resource.data.total && request.resource.data.total <= 200
+        && request.resource.data.skills is list && request.resource.data.skills.size() <= 20
+        && request.resource.data.strengths is list && request.resource.data.strengths.size() <= 5
+        && request.resource.data.focus is list && request.resource.data.focus.size() <= 5;
+    }
+  }
+}
+```
+
 ### Link previews
 Every public page has Open Graph + Twitter tags (title, description, 1200x630 image, url) so WhatsApp and others show a card. WhatsApp caches previews per URL: old messages never update; append `?v=2` to force a fresh preview.
 
@@ -175,4 +221,5 @@ All on 27 Sep 2026 unless noted.
 - **This file (AGENTS.md)** added so any AI assistant can pick up the full context; `CLAUDE.md` points here.
 - **29 Sep 2026: three coming-soon tests** in Personal Growth (Strengths Finder, Communication Style, Consistency Check), picked to match the HV World story (knowing your strengths, communication, consistency). Only `test.json` for now; add `index.html` and set `status` to `live` when each one is built.
 - **29 Sep 2026: AI Basics (coming soon)** in a new category, AI & Future Skills: what AI can and cannot do, asking good questions, checking answers, using it at work or study.
+- **29 Sep 2026: Skill Assessment Scorecard + verify page.** Owner wanted an official-looking, HV Test-issued report card that others can check, without claiming accreditation. Design B picked from three; verification by saving a small summary record (owner chose this over a signed-only link). Privacy copy on the intake screen updated to say so.
 - **29 Sep 2026: category tabs on the hub** so people can open one category's tests, like a course catalogue, as the list grows.

@@ -10,7 +10,7 @@ All HV Test self-assessment tests in one place. The home page lists every test a
 
 For AI assistants and future contributors: full project context, design system and decision log are in [AGENTS.md](AGENTS.md).
 
-Everything runs in the browser. No login, no server, and no answers are stored or sent anywhere. These are self-assessment and personal growth tools, not clinical or psychological diagnosis.
+Everything runs in the browser. No login, and answers are never stored or sent anywhere. The only thing saved is an optional Skill Assessment Scorecard summary (name, date, scores), when the person asks for one, so others can check it at `/verify/`. These are self-assessment and personal growth tools, not clinical or psychological diagnosis.
 
 ## Structure
 
