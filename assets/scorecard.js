@@ -275,25 +275,41 @@
       by += 34;
     });
 
-    // Strengths / Work on chips
-    var tagPanel = function (py, ph, title, items, bg, fg) {
+    // Strengths / Work on chips. Boxes size to their chips (long names can wrap to one chip per row).
+    var chipW = function (n) {
+      var sk = (rec.skills || []).filter(function (x) { return x.name === n; })[0];
+      ctx.font = "400 18px " + SORA; var nw = ctx.measureText(n + "  ").width;
+      ctx.font = "600 18px " + SORA; var vw = sk ? ctx.measureText(String(sk.score)).width : 0;
+      return { n: n, s: sk, nw: nw, w: nw + vw + 28 };
+    };
+    var layout = function (items) {
+      var rows = [[]], x = 0, maxW = rw - 56;
+      items.map(chipW).forEach(function (c) {
+        if (x && x + c.w > maxW) { rows.push([]); x = 0; }
+        rows[rows.length - 1].push(c); x += c.w + 8;
+      });
+      return rows;
+    };
+    var sRows = layout(rec.strengths || []), fRows = layout(rec.focus || []);
+    var step = 50, chipH = 40, head = 70, pad = 22, gap = 18, total = 444;
+    var need = function () { return 2 * (head + pad) + (sRows.length + fRows.length) * step - 2 * (step - chipH) + gap; };
+    if (need() > total) { step = 44; chipH = 36; head = 64; pad = 18; }
+    var sH = head + sRows.length * step - (step - chipH) + pad;
+    var tagPanel = function (py, ph, title, rows, bg, fg) {
       card(ctx, rx, py, rw, ph, 22);
       label(ctx, title, rx + 28, py + 45);
-      var tx = rx + 28, ty = py + 70, maxX = rx + rw - 28;
-      items.forEach(function (n) {
-        var s = (rec.skills || []).filter(function (x) { return x.name === n; })[0];
-        ctx.font = "400 18px " + SORA; var nw = ctx.measureText(n + "  ").width;
-        ctx.font = "600 18px " + SORA; var vw = s ? ctx.measureText(String(s.score)).width : 0;
-        var w = nw + vw + 28;
-        if (tx + w > maxX) { tx = rx + 28; ty += 50; }
-        ctx.fillStyle = bg; rr(ctx, tx, ty, w, 40, 12); ctx.fill();
-        ctx.fillStyle = fg; ctx.font = "400 18px " + SORA; ctx.fillText(n, tx + 14, ty + 26);
-        if (s) { ctx.font = "600 18px " + SORA; ctx.fillText(String(s.score), tx + 14 + nw, ty + 26); }
-        tx += w + 8;
+      rows.forEach(function (row, ri) {
+        var tx = rx + 28, ty = py + head + ri * step;
+        row.forEach(function (c) {
+          ctx.fillStyle = bg; rr(ctx, tx, ty, c.w, chipH, 12); ctx.fill();
+          ctx.fillStyle = fg; ctx.font = "400 18px " + SORA; ctx.fillText(c.n, tx + 14, ty + chipH / 2 + 6);
+          if (c.s) { ctx.font = "600 18px " + SORA; ctx.fillText(String(c.s.score), tx + 14 + c.nw, ty + chipH / 2 + 6); }
+          tx += c.w + 8;
+        });
       });
     };
-    tagPanel(gy, 188, "Strengths", rec.strengths || [], "#E6F4EC", "#0B4F33");
-    tagPanel(gy + 206, 238, "Work on", rec.focus || [], "#F1F3F2", "#1D2622");
+    tagPanel(gy, sH, "Strengths", sRows, "#E6F4EC", "#0B4F33");
+    tagPanel(gy + sH + gap, total - sH - gap, "Work on", fRows, "#F1F3F2", "#1D2622");
 
     // Footer: QR, ID, disclaimer
     ctx.fillStyle = LINE; ctx.fillRect(L, 1142, R - L, 1.5);
