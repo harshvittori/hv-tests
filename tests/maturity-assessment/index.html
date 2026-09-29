@@ -261,6 +261,23 @@
   .download-or { font-size: 12px; color: var(--ink-faint); text-align: center; margin: 4px 0 -2px; }
   .download-status { font-size: 13px; color: var(--ink-faint); margin-top: 8px; }
 
+  .sc-img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; border-radius: 14px; border: 1px solid var(--line); background: var(--paper-raised); box-shadow: 0 14px 34px -20px rgba(12,40,26,.5); }
+  .sc-save { margin-top: 14px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+  .sc-save .sc-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .sc-save .field { flex: 1 1 220px; margin: 0; }
+  .sc-save h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+  .sc-save .sc-note { font-size: 12.5px; color: var(--ink-faint); margin: 10px 0 0; }
+  .sc-save .sc-done { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 14px; color: var(--ink-soft); }
+  .sc-save .sc-done b { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ink); }
+  .sc-save .sc-tick { width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex: none; }
+  .sc-linkbtn { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: var(--accent); cursor: pointer; text-decoration: underline; }
+  .full-results { margin-top: 28px; border-top: 1px solid var(--line); }
+  .full-results > summary { list-style: none; cursor: pointer; padding: 18px 0; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+  .full-results > summary::-webkit-details-marker { display: none; }
+  .full-results > summary::after { content: ""; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-3px); transition: transform .2s ease; }
+  .full-results[open] > summary::after { transform: rotate(-135deg) translateY(-2px); }
+  .full-results > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .full-inner { padding-top: 4px; }
   .sc-offer .primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
   @media (max-width: 480px) { .sc-offer .primary { width: 100%; } }
   .sc-offer { margin-top: 16px; padding: 20px; border: 1px solid var(--accent-line); border-radius: 12px; background: var(--card); }
@@ -2452,22 +2469,12 @@ function renderResults(){
     ${brandHeader()}
 
     <h1 class="title serif" style="font-size:30px;margin-bottom:4px;">${escapeAttr(userInfo.name)}'s Maturity Assessment</h1>
-    <p class="score-tier" style="margin:0 0 18px;font-size:14.5px;">Personal Growth &amp; Self-Awareness Report</p>
-    <p class="lede" style="margin-bottom:24px;">Age: ${escapeAttr(userInfo.age)} &nbsp;•&nbsp; Profession: ${escapeAttr(profLabel)}</p>
+    <p class="score-tier" style="margin:0 0 22px;font-size:14.5px;">Your Skill Assessment Scorecard</p>
 
-    <div class="score-hero">
-      <div class="score-tier" style="margin:0 0 6px;font-size:12.5px;letter-spacing:0.06em;color:var(--ink-faint);">OVERALL MATURITY SCORE</div>
-      <div class="score-big serif">${overall}<span style="font-size:28px;color:var(--ink-faint);">/100</span></div>
-      <div class="score-tier"><strong>${tier.label}.</strong> ${tier.blurb}</div>
-      ${timeStats.adjustment !== 0 ? `<div class="score-tier" style="margin-top:8px;font-size:13.5px;">Your answer-based score was ${baseOverall}/100. A small adjustment of ${timeStats.adjustment} was applied based on your response-time pattern — see "${firstName}'s Response Pattern" below.</div>` : ``}
-    </div>
-
-    <div class="section-label">Your Skill Assessment Scorecard</div>
     <div id="scorecard-area"></div>
 
-    <div class="section-label">Download your report</div>
     <div class="download-box">
-      <p>Your full results report, and a plan of action built from your own answers, as two PDFs.</p>
+      <p>Two PDFs: your full report (it opens with this scorecard) and a plan of action built from your own answers.</p>
       <div class="download-actions">
         <button class="primary" id="both-btn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/></svg>
@@ -2475,13 +2482,25 @@ function renderResults(){
         </button>
         <div class="download-status" id="both-status"></div>
         <div class="download-or">or one at a time</div>
-        <button class="ghost" id="pdf-btn">Maturity Report PDF</button>
+        <button class="ghost" id="pdf-btn">Report PDF (with scorecard)</button>
         <div class="download-status" id="pdf-status"></div>
         <button class="ghost" id="plan-btn">Plan of Action PDF</button>
         <div class="download-status" id="plan-status"></div>
+        <button class="ghost" id="img-btn">Share image</button>
+        <div class="download-status" id="img-status"></div>
       </div>
     </div>
 
+    <details class="full-results">
+      <summary>See full results</summary>
+      <div class="full-inner">
+    <p class="lede" style="margin-bottom:24px;">Age: ${escapeAttr(userInfo.age)} &nbsp;•&nbsp; Profession: ${escapeAttr(profLabel)}</p>
+    <div class="score-hero">
+      <div class="score-tier" style="margin:0 0 6px;font-size:12.5px;letter-spacing:0.06em;color:var(--ink-faint);">OVERALL MATURITY SCORE</div>
+      <div class="score-big serif">${overall}<span style="font-size:28px;color:var(--ink-faint);">/100</span></div>
+      <div class="score-tier"><strong>${tier.label}.</strong> ${tier.blurb}</div>
+      ${timeStats.adjustment !== 0 ? `<div class="score-tier" style="margin-top:8px;font-size:13.5px;">Your answer-based score was ${baseOverall}/100. A small adjustment of ${timeStats.adjustment} was applied based on your response-time pattern — see "${firstName}'s Response Pattern" below.</div>` : ``}
+    </div>
 
     <div class="section-label">${firstName}'s Response Pattern</div>
     <div class="meta-row">
@@ -2581,6 +2600,9 @@ function renderResults(){
       }).join("")}
     </div>
 
+      </div>
+    </details>
+
     <div class="actions-row">
       <button class="ghost" id="retake-btn">Retake the test</button>
     </div>
@@ -2603,6 +2625,7 @@ function renderResults(){
   document.getElementById("both-btn").addEventListener("click", downloadBothZip);
   document.getElementById("pdf-btn").addEventListener("click", downloadPdf);
   document.getElementById("plan-btn").addEventListener("click", downloadPlanPdf);
+  document.getElementById("img-btn").addEventListener("click", shareScorecardImage);
   renderScorecardArea();
 }
 
@@ -2629,59 +2652,57 @@ function scorecardSummary(){
   };
 }
 
+// The scorecard shown on screen: the saved record, or a preview (no ID yet) with the name typed so far
+function scorecardForDisplay(){
+  if (issuedScorecard) return issuedScorecard;
+  const { record } = scorecardSummary();
+  const input = document.getElementById("sc-name");
+  record.name = (input && input.value.replace(/\s+/g, " ").trim()) || userInfo.name;
+  return record;
+}
+
+let scImageJob = 0;
+async function drawScorecardImage(){
+  const img = document.getElementById("sc-img");
+  if (!img || !window.HVScorecard) return;
+  const job = ++scImageJob;
+  const canvas = await HVScorecard.renderImage(scorecardForDisplay());
+  if (job !== scImageJob) return;
+  img.src = canvas.toDataURL("image/png");
+}
+
 function renderScorecardArea(){
   const area = document.getElementById("scorecard-area");
   if (!area) return;
   if (!window.HVScorecard) { area.innerHTML = `<p class="download-status">The scorecard tool didn't load. Please check your connection and reload the page.</p>`; return; }
-  if (issuedScorecard) {
-    const { next } = scorecardSummary();
-    area.innerHTML = `
-      <div class="sc-issued">${HVScorecard.cardHTML(issuedScorecard, { next })}</div>
-      <div class="sc-actions">
-        <button class="primary" id="sc-pdf-btn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/></svg>
-          Download scorecard
-        </button>
-        <button class="ghost" id="sc-copy-btn">Copy check link</button>
-        ${navigator.share ? `<button class="ghost" id="sc-share-btn">Share</button>` : ``}
+  const save = issuedScorecard ? `
+      <div class="sc-done" role="status">
+        <span class="sc-tick"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+        <span>Checkable. ID <b>${issuedScorecard.id}</b></span>
+        <button class="sc-linkbtn" id="sc-copy-btn">Copy check link</button>
       </div>
-      <div class="download-status" id="sc-status" role="status"></div>`;
-    document.getElementById("sc-pdf-btn").addEventListener("click", downloadScorecardPdf);
-    document.getElementById("sc-copy-btn").addEventListener("click", copyScorecardLink);
-    const share = document.getElementById("sc-share-btn");
-    if (share) share.addEventListener("click", () => {
-      navigator.share({ title: "My HV Test Skill Assessment Scorecard", text: "My Maturity Assessment scorecard on HV Test (ID " + issuedScorecard.id + ")", url: HVScorecard.verifyLink(issuedScorecard.id) }).catch(() => {});
-    });
-    return;
-  }
-  const { record, next } = scorecardSummary();
-  record.name = userInfo.name;
-  area.innerHTML = `
-    <div class="sc-issued" id="sc-preview">${HVScorecard.cardHTML(record, { next })}</div>
-    <div class="sc-offer">
-      <div class="sc-offer-top">
-        <span class="sc-offer-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h5M8.5 16.5l2 2 4-4.5"/></svg></span>
-        <div>
-          <h3 class="serif">Save and download your scorecard</h3>
-          <p>Get a unique ID and QR code so anyone can check it's real, then download it as a one-page PDF.</p>
+      <div class="download-status" id="sc-status" role="status"></div>` : `
+      <h3>Make it checkable</h3>
+      <div class="sc-row">
+        <div class="field">
+          <label for="sc-name">Name on the scorecard</label>
+          <input type="text" id="sc-name" maxlength="60" autocomplete="name" value="${escapeAttr(userInfo.name)}">
         </div>
+        <button class="primary" id="sc-btn">Add ID and QR code</button>
       </div>
-      <div class="field">
-        <label for="sc-name">Name on the scorecard</label>
-        <input type="text" id="sc-name" maxlength="60" autocomplete="name" value="${escapeAttr(userInfo.name)}">
-      </div>
-      <p class="sc-note">To make it checkable, HV Test saves a short summary: this name, the date, your scores and level. Your answers, age and profession are not saved. Anyone with the ID can see the summary.</p>
-      <button class="primary" id="sc-btn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/></svg>
-        Save and download
-      </button>
-      <div class="download-status" id="sc-status" role="status"></div>
-    </div>`;
-  document.getElementById("sc-name").addEventListener("input", e => {
-    const n = document.querySelector("#sc-preview .sc-name");
-    if (n) n.textContent = e.target.value.replace(/\s+/g, " ").trim() || userInfo.name;
-  });
-  document.getElementById("sc-btn").addEventListener("click", createScorecard);
+      <p class="sc-note">This saves a short summary (this name, the date, your scores and level) so anyone with the ID can check it. Your answers, age and profession are not saved.</p>
+      <div class="download-status" id="sc-status" role="status"></div>`;
+  area.innerHTML = `
+    <img class="sc-img" id="sc-img" alt="Skill Assessment Scorecard: ${escapeAttr(scorecardForDisplay().name)}, Maturity Assessment, score ${computeResults().overall} out of 100">
+    <div class="sc-save">${save}</div>`;
+  drawScorecardImage();
+  if (issuedScorecard) {
+    document.getElementById("sc-copy-btn").addEventListener("click", copyScorecardLink);
+  } else {
+    let t = null;
+    document.getElementById("sc-name").addEventListener("input", () => { clearTimeout(t); t = setTimeout(drawScorecardImage, 250); });
+    document.getElementById("sc-btn").addEventListener("click", createScorecard);
+  }
 }
 
 async function createScorecard(){
@@ -2689,15 +2710,14 @@ async function createScorecard(){
   const name = document.getElementById("sc-name").value.replace(/\s+/g, " ").trim();
   if (!name) { statusEl.textContent = "Please enter the name to show on the scorecard."; return; }
   btn.disabled = true;
-  statusEl.textContent = "Creating your scorecard...";
+  statusEl.textContent = "Saving your scorecard...";
   const { record } = scorecardSummary();
   record.name = name.slice(0, 60);
   const [res] = await Promise.all([HVScorecard.issue(record, "MA"), HVScorecard.loadQr()]);
   if (!res.ok) { btn.disabled = false; statusEl.textContent = res.error; return; }
   issuedScorecard = res.record;
   renderScorecardArea();
-  await downloadScorecardPdf();
-  document.getElementById("sc-status").textContent = "Saved and downloaded. Your scorecard ID is " + issuedScorecard.id + ".";
+  document.getElementById("sc-status").textContent = "Saved. Your scorecard and Report PDF now carry this ID and QR code.";
 }
 
 async function copyScorecardLink(){
@@ -2706,28 +2726,35 @@ async function copyScorecardLink(){
   catch (e) { statusEl.textContent = link; }
 }
 
-async function downloadScorecardPdf(){
-  const statusEl = document.getElementById("sc-status"), btn = document.getElementById("sc-pdf-btn");
-  if (!window.jspdf || !window.jspdf.jsPDF) { statusEl.textContent = "The PDF tool didn't load. Please check your connection and try again."; return; }
+// Scorecard as a PNG: the phone share sheet when it can take files, otherwise a download
+async function shareScorecardImage(){
+  const statusEl = document.getElementById("img-status"), btn = document.getElementById("img-btn");
+  if (!window.HVScorecard) return;
   btn.disabled = true;
-  statusEl.textContent = "Building your scorecard PDF...";
+  statusEl.textContent = "Preparing the image...";
   try {
-    await HVScorecard.loadQr();
-    const doc = await buildScorecardPdf(issuedScorecard, scorecardSummary().next);
-    await savePdfDoc(doc, "HV_Test_Maturity_Assessment_Scorecard_" + sanitizeFilenamePart(issuedScorecard.name) + ".pdf");
-    statusEl.textContent = "Scorecard PDF downloaded.";
+    const rec = scorecardForDisplay();
+    const canvas = await HVScorecard.renderImage(rec);
+    const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
+    const filename = "HV_Test_Maturity_Assessment_Scorecard_" + sanitizeFilenamePart(rec.name) + ".png";
+    const file = new File([blob], filename, { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: "My HV Test Scorecard", text: rec.id ? "Check it at " + HVScorecard.verifyLink(rec.id) : "My Maturity Assessment scorecard on HV Test" });
+        statusEl.textContent = "";
+        return;
+      } catch (e) { if (e && e.name === "AbortError") { statusEl.textContent = ""; return; } }
+    }
+    await saveBlob(blob, filename);
+    statusEl.textContent = "Image saved.";
   } catch (e) {
-    statusEl.textContent = "Couldn't build the PDF. Please try again.";
+    statusEl.textContent = "Couldn't make the image. Please try again.";
   } finally { btn.disabled = false; }
 }
 
-// One A4 page in the same layout as the on-screen card (design B)
-async function buildScorecardPdf(rec, next){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  await useBrandFont(doc);
-  doc.setProperties({ title: "Maturity Assessment: Skill Assessment Scorecard for " + rec.name, subject: "HV Test | Skill Assessment Scorecard | " + rec.id, author: "HV Test" });
-  const W = 210, L = 18, R = 192, link = HVScorecard.verifyLink(rec.id);
+// Page 1 of the Report PDF: the scorecard in the same layout as the image (design B). A record with no id is a preview.
+function drawScorecardPage(doc, rec, next){
+  const W = 210, L = 18, R = 192, saved = !!rec.id, link = saved ? HVScorecard.verifyLink(rec.id) : "";
   // jsPDF's align ignores charSpace, so spaced labels are placed by hand
   const spacedWidth = (t, cs) => doc.getTextWidth(t) + cs * (t.length - 1);
   const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
@@ -2752,7 +2779,7 @@ async function buildScorecardPdf(rec, next){
   doc.setFont("helvetica", "normal"); doc.setFontSize(12); doc.setTextColor(214, 236, 223);
   doc.text(rec.testTitle + "  |  " + rec.category, L, 57);
 
-  const meta = [["COMPLETED", HVScorecard.dateText(rec.completedAt), "helvetica"], ["SCORECARD ID", rec.id, "courier"], ["ANSWERED", rec.answered + " of " + rec.total, "helvetica"]];
+  const meta = [["COMPLETED", HVScorecard.dateText(rec.completedAt), "helvetica"], ["SCORECARD ID", saved ? rec.id : "Not saved", saved ? "courier" : "helvetica"], ["ANSWERED", rec.answered + " of " + rec.total, "helvetica"]];
   let mx = L;
   meta.forEach(([k, v, font], i) => {
     doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(180, 216, 196); doc.text(k, mx, 72, { charSpace: 0.5 });
@@ -2834,7 +2861,15 @@ async function buildScorecardPdf(rec, next){
   doc.setFillColor(244, 248, 245); doc.rect(0, sy, W, 36, "F");
   doc.setDrawColor(220, 231, 223); doc.setLineWidth(0.3); doc.line(0, sy, W, sy);
   const q = 26;
-  if (window.qrcode) {
+  if (!saved) {
+    doc.setFillColor(253, 243, 225); doc.roundedRect(L, sy + 6, 22, 6, 3, 3, "F");
+    doc.setFillColor(227, 162, 59); doc.circle(L + 3.6, sy + 9, 1, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(138, 90, 16); doc.text("PREVIEW", L + 5.8, sy + 10.2, { charSpace: 0.3 });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor(74, 90, 80);
+    doc.splitTextToSize("This copy has no check ID. Use \"Add ID and QR code\" on your results page to get one, then download again.", 110)
+      .forEach((l, i) => doc.text(l, L, sy + 19 + i * 5));
+  }
+  if (saved && window.qrcode) {
     const qr = window.qrcode(0, "M"); qr.addData(link); qr.make();
     const n = qr.getModuleCount(), cell = (q - 3) / n;
     doc.setFillColor(255, 255, 255); doc.roundedRect(L, sy + 5, q, q, 2, 2, "FD");
@@ -2843,6 +2878,7 @@ async function buildScorecardPdf(rec, next){
       if (qr.isDark(rr, c)) doc.rect(L + 1.5 + c * cell, sy + 6.5 + rr * cell, cell + 0.05, cell + 0.05, "F");
   }
   const vx = L + q + 7;
+  if (saved) {
   doc.setFillColor(223, 241, 230); doc.roundedRect(vx, sy + 6, 30, 6, 3, 3, "F");
   doc.setFillColor(18, 122, 79); doc.circle(vx + 3.6, sy + 9, 1, "F");
   doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(11, 79, 51); doc.text("COMPLETED", vx + 5.8, sy + 10.2, { charSpace: 0.3 });
@@ -2852,14 +2888,16 @@ async function buildScorecardPdf(rec, next){
   doc.textWithLink(HVScorecard.VERIFY_SHOWN, vx + doc.getTextWidth("Check this record at "), sy + 18.5, { url: link });
   doc.setFont("helvetica", "normal"); doc.setTextColor(74, 90, 80); doc.text("with ID", vx, sy + 24);
   doc.setFont("courier", "bold"); doc.setFontSize(10.5); doc.setTextColor(23, 35, 28); doc.text(rec.id, vx + 13, sy + 24);
+  }
   doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(111, 129, 119);
   doc.splitTextToSize("Issued by HV Test. A self-assessment, not an accredited certification or qualification.", 48)
     .forEach((l, i) => doc.text(l, R, sy + 10 + i * 4, { align: "right" }));
 
   drawFooterBrand(doc, L, 290, "Maturity Assessment | Skill Assessment Scorecard");
-  doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(111, 129, 119);
-  doc.text("ID " + rec.id, R, 290, { align: "right" });
-  return doc;
+  if (saved) {
+    doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(111, 129, 119);
+    doc.text("ID " + rec.id, R, 290, { align: "right" });
+  }
 }
 
 /* ---------------------------------------------------------------
@@ -2886,6 +2924,12 @@ async function downloadPdf(){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "mm", format: "a4" });
     await useBrandFont(doc);
+    if (window.HVScorecard) {
+      await HVScorecard.loadQr();
+      drawScorecardPage(doc, scorecardForDisplay(), scorecardSummary().next);
+      doc.addPage();
+    }
+    const firstReportPage = doc.internal.getNumberOfPages();
     const pageW = 210, pageH = 297;
     const marginX = 20;
     const contentW = pageW - marginX * 2;
@@ -3174,7 +3218,7 @@ async function downloadPdf(){
     // Footer — subtle brand line + page number on every page
     await addMoreTestsPage(doc);
     const pageCount = doc.internal.getNumberOfPages();
-    for (let p = 1; p <= pageCount; p++) {
+    for (let p = firstReportPage; p <= pageCount; p++) {
       doc.setPage(p);
       doc.setDrawColor.apply(doc, lineColor);
       doc.setLineWidth(0.2);
