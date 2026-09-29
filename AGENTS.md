@@ -102,6 +102,7 @@ Contrast was checked to WCAG AA (body 15:1, button text 5.4:1, faint text 3.9:1)
 - All motion is disabled under `prefers-reduced-motion`.
 - Intro screen: facts chips (28 to 30 questions, About 10 min, 2 personal PDFs, No login), "Before you start" cards with icons, Start button with arrow, disclaimer under it.
 - Hub: category headings (uppercase accent), cards with Live chip, amber bar under "All Tests".
+- Hub category tabs (shown when there are 2+ categories): a sticky row of pill tabs, "All tests" plus one per category with an icon and count. A tab shows only that category, with an intro box (name, one line from `ABOUT` in `index.html`, counts). The choice is in the URL hash (`#personal-growth`), so links and the back button work; arrow keys move between tabs; "All" keeps the grouped view with an "Open category" link per group. New categories work automatically; add a line to `ABOUT` and an icon to `ICON` for the nicest look.
 
 ## 6. The Maturity Assessment app
 
@@ -174,3 +175,4 @@ All on 27 Sep 2026 unless noted.
 - **This file (AGENTS.md)** added so any AI assistant can pick up the full context; `CLAUDE.md` points here.
 - **29 Sep 2026: three coming-soon tests** in Personal Growth (Strengths Finder, Communication Style, Consistency Check), picked to match the HV World story (knowing your strengths, communication, consistency). Only `test.json` for now; add `index.html` and set `status` to `live` when each one is built.
 - **29 Sep 2026: AI Basics (coming soon)** in a new category, AI & Future Skills: what AI can and cannot do, asking good questions, checking answers, using it at work or study.
+- **29 Sep 2026: category tabs on the hub** so people can open one category's tests, like a course catalogue, as the list grows.

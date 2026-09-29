@@ -154,6 +154,28 @@
   }
   .cta { font-size: 14px; font-weight: 600; color: var(--accent); white-space: nowrap; }
 
+  /* category tabs: pick a category to see only its tests */
+  .cats { position: sticky; top: 0; z-index: 5; margin: 0 -24px 28px; padding: 10px 24px; background: var(--paper); background: color-mix(in srgb, var(--paper) 95%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; transition: border-color .2s ease; }
+  .cats.stuck { border-bottom-color: var(--line); }
+  @media (max-width: 960px) { .cats.stuck { padding-right: 68px; } }
+  @media (max-width: 480px) { .cats { margin: 0 -16px 24px; padding: 10px 16px; } .cats.stuck { padding-right: 64px; } }
+  .cats-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .cats-row::-webkit-scrollbar { display: none; }
+  .cat-tab { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 8px 0 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--card); color: var(--ink-soft); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: border-color .2s ease, background .2s ease, color .2s ease; }
+  .cat-tab svg { width: 16px; height: 16px; flex: none; }
+  .cat-tab .n { min-width: 24px; height: 24px; padding: 0 7px; border-radius: 99px; display: inline-grid; place-items: center; font-size: 12px; background: var(--paper-raised); color: var(--ink-faint); }
+  .cat-tab:hover { border-color: var(--accent); color: var(--accent); }
+  .cat-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cat-tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--primary-text); }
+  .cat-tab[aria-selected="true"] .n { background: rgba(255,255,255,.22); color: var(--primary-text); }
+  .cat-intro { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin: 0 0 20px; padding: 20px 22px; border-radius: 14px; background: var(--paper-raised); border: 1px solid var(--line); }
+  .cat-intro h2 { font-size: 26px; line-height: 1.2; font-weight: 500; margin: 0 0 4px; }
+  .cat-intro p { margin: 0; color: var(--ink-soft); font-size: 15px; max-width: 48ch; }
+  .cat-intro .stats { font-size: 13px; color: var(--ink-faint); white-space: nowrap; }
+  .cat-open { margin-left: auto; background: none; border: 0; padding: 4px 0; font: inherit; font-size: 13.5px; font-weight: 600; color: var(--accent); cursor: pointer; }
+  .cat-open:hover { text-decoration: underline; }
+  .cat-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  #tests.swap > * { animation: hv-rise .4s cubic-bezier(.2,.7,.2,1) both; }
   .state { color: var(--ink-faint); font-size: 15px; padding: 24px 0; }
   footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); }
   .theme-toggle {
@@ -239,6 +261,7 @@
   <p class="lede">Understand yourself. See your patterns. <strong>Grow from them.</strong></p>
   <p class="note">Every test runs in your browser. No login, and your answers are never stored or sent anywhere.</p>
 
+  <nav class="cats" id="cats" aria-label="Test categories" hidden><div class="cats-row" role="tablist" id="cats-row"></div></nav>
   <div id="tests" aria-live="polite">
     <p class="state">Loading tests...</p>
   </div>
@@ -284,24 +307,103 @@
       : '<div class="card soon" aria-disabled="true">' + inner + '</div>';
   }
 
+  // Categories: a short line for each, and an icon. New categories still work without an entry here.
+  var ABOUT = {
+    "Personal Growth": "How you think, act, communicate and keep going.",
+    "AI & Future Skills": "Understand AI and use it with confidence."
+  };
+  var ICON = {
+    "all": '<path d="M4 5h7v6H4zM13 5h7v6h-7zM4 13h7v6H4zM13 13h7v6h-7z"/>',
+    "Personal Growth": '<path d="M12 20v-7M12 13c0-4 3-7 7-7 0 4-3 7-7 7zM12 15c0-3-2.5-5.5-6-5.5 0 3 2.5 5.5 6 5.5z"/>',
+    "AI & Future Skills": '<path d="M12 3l1.8 4.9L19 9.7l-5.2 1.8L12 16.4l-1.8-4.9L5 9.7l5.2-1.8zM18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/>'
+  };
+  function icon(k) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICON[k] || ICON.all) + '</svg>';
+  }
+  function slug(c) { return String(c).toLowerCase().replace(/&/g, " ").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+  function count(n) { return n + (n === 1 ? " test" : " tests"); }
+
+  var nav = document.getElementById("cats"), row = document.getElementById("cats-row");
+  var tests = [], order = [], groups = {}, index = {};
+
+  function tab(key, label, n, iconKey) {
+    return '<button type="button" class="cat-tab" role="tab" id="tab-' + key + '" data-cat="' + key + '" aria-controls="tests" aria-selected="false">' +
+      icon(iconKey) + '<span>' + esc(label) + '</span><span class="n">' + n + '</span></button>';
+  }
+
+  function section(c, withLink) {
+    var items = groups[c];
+    return '<section class="category"><div class="category-head"><h2>' + esc(c) + '</h2><span>' + count(items.length) + '</span>' +
+      (withLink ? '<button type="button" class="cat-open" data-cat="' + slug(c) + '">Open category &rarr;</button>' : '') + '</div>' +
+      '<div class="grid">' + items.map(function (t) { return card(t, index[t.slug]); }).join("") + '</div></section>';
+  }
+
+  function show(key, focusTab) {
+    var cat = null;
+    order.forEach(function (c) { if (slug(c) === key) cat = c; });
+    if (!cat) key = "all";
+    row.querySelectorAll(".cat-tab").forEach(function (b) {
+      var on = b.getAttribute("data-cat") === key;
+      b.setAttribute("aria-selected", on ? "true" : "false");
+      b.tabIndex = on ? 0 : -1;
+      if (on && focusTab) b.focus();
+      if (on) b.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+    if (cat) {
+      var items = groups[cat], live = items.filter(function (t) { return t.status === "live"; }).length;
+      list.innerHTML = '<div class="cat-intro"><div><h2 class="serif">' + esc(cat) + '</h2>' + (ABOUT[cat] ? '<p>' + esc(ABOUT[cat]) + '</p>' : '') + '</div>' +
+        '<span class="stats">' + count(items.length) + (live && live < items.length ? ' · ' + live + ' live' : '') + (!live ? ' · coming soon' : '') + '</span></div>' +
+        '<div class="grid">' + items.map(function (t) { return card(t, index[t.slug]); }).join("") + '</div>';
+    } else {
+      list.innerHTML = order.map(function (c) { return section(c, order.length > 1); }).join("");
+    }
+    list.setAttribute("aria-labelledby", "tab-" + key);
+    list.classList.remove("swap"); void list.offsetWidth; list.classList.add("swap");
+  }
+
+  function fromHash() { return decodeURIComponent((location.hash || "").slice(1)) || "all"; }
+  function go(key, focusTab) {
+    var h = key === "all" ? "" : "#" + key;
+    if ((location.hash || "") !== h) history.pushState(null, "", h || location.pathname + location.search);
+    show(key, focusTab);
+  }
+
+  row.addEventListener("click", function (e) { var b = e.target.closest(".cat-tab"); if (b) go(b.getAttribute("data-cat")); });
+  row.addEventListener("keydown", function (e) {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft" && e.key !== "Home" && e.key !== "End") return;
+    var tabs = Array.prototype.slice.call(row.querySelectorAll(".cat-tab")), i = tabs.indexOf(document.activeElement);
+    if (i < 0) return;
+    e.preventDefault();
+    var j = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+    go(tabs[j].getAttribute("data-cat"), true);
+  });
+  list.addEventListener("click", function (e) {
+    var b = e.target.closest(".cat-open"); if (!b) return;
+    go(b.getAttribute("data-cat"));
+    nav.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  window.addEventListener("popstate", function () { show(fromHash()); });
+  if ("IntersectionObserver" in window) {
+    var sentinel = document.createElement("div"); nav.parentNode.insertBefore(sentinel, nav);
+    new IntersectionObserver(function (es) { nav.classList.toggle("stuck", !es[0].isIntersecting); }).observe(sentinel);
+  }
+
   fetch("tests.json", { cache: "no-cache" })
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (data) {
-      var tests = (data && data.tests) || [];
+      tests = (data && data.tests) || [];
       if (!tests.length) { list.innerHTML = '<p class="state">New tests are on the way. Check back soon.</p>'; return; }
-      var order = [], groups = {};
-      tests.forEach(function (t) {
+      tests.forEach(function (t, i) {
+        index[t.slug] = i;
         var c = t.category || "More tests";
         if (!groups[c]) { groups[c] = []; order.push(c); }
         groups[c].push(t);
       });
-      var n = 0;
-      list.innerHTML = order.map(function (c) {
-        var items = groups[c];
-        return '<section class="category"><div class="category-head"><h2>' + esc(c) + '</h2><span>' +
-          items.length + (items.length === 1 ? " test" : " tests") + '</span></div>' +
-          '<div class="grid">' + items.map(function (t) { return card(t, n++); }).join("") + '</div></section>';
-      }).join("");
+      if (order.length > 1) {
+        row.innerHTML = tab("all", "All tests", tests.length, "all") + order.map(function (c) { return tab(slug(c), c, groups[c].length, c); }).join("");
+        nav.hidden = false;
+      }
+      show(fromHash());
     })
     .catch(function () {
       list.innerHTML = '<p class="state">Could not load the list of tests. Please refresh the page.</p>';
