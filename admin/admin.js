@@ -1,5 +1,6 @@
 /* HV Test admin: sign in with the admin Google account, then read scorecard and test-finished numbers from Firestore.
    Access is enforced by the Firestore rules (isAdmin() = one Firebase account ID), not by this page.
+   Open admin/?setup to see the signed-in account ID and the rules to paste (only needed to set or change the admin).
    Local testing: on localhost, add ?emu to use the Firebase emulators (auth 9099, Firestore 8089, project demo-hv). */
 (function () {
   "use strict";
@@ -79,13 +80,15 @@
   for (var i = 29; i >= 0; i--) DAYS.push(istDay(istStart(i)));
 
   /* ---------- screens ---------- */
-  function show(id) { ["gate", "denied", "dash"].forEach(function (s) { $(s).hidden = s !== id; }); }
+  function show(id) { ["gate", "nope", "denied", "dash"].forEach(function (s) { $(s).hidden = s !== id; }); }
+  // The setup helper (account ID + rules to paste) only shows with ?setup in the link; other accounts just see "Access denied"
+  var SETUP = /[?&]setup\b/.test(location.search);
   $("signin").addEventListener("click", async function () {
     $("gate-status").textContent = "Opening Google sign-in...";
     try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     catch (e) { $("gate-status").textContent = e && e.code === "auth/popup-closed-by-user" ? "" : "Couldn't sign in. Please try again."; }
   });
-  [$("signout"), $("d-out")].forEach(function (b) { b.addEventListener("click", function () { auth.signOut(); }); });
+  [$("signout"), $("d-out"), $("n-out")].forEach(function (b) { b.addEventListener("click", function () { auth.signOut(); }); });
   $("d-retry").addEventListener("click", load);
   $("refresh").addEventListener("click", load);
   $("d-copy").addEventListener("click", async function () {
@@ -141,6 +144,7 @@
     if (user.photoURL) $("me-pic").src = user.photoURL; else $("me-pic").hidden = true;
   }
   function showDenied() {
+    if (!SETUP) { show("nope"); $("n-email").textContent = user.email || user.displayName || "another account"; return; }
     show("denied");
     $("d-email").textContent = user.email || user.displayName || "this account";
     $("d-uid").textContent = user.uid;
