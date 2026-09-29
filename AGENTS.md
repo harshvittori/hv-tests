@@ -4,7 +4,7 @@ Read this before changing anything. It explains what this project is, how it is 
 
 ## 1. What this is
 
-**HV Test** is a set of free, browser-only self-assessment tests for personal growth, made by Harsh Goyal (GitHub `harshvittori`). People take a test, get a score, and download personal PDFs. No login. Answers never leave the browser. The only thing ever stored is an optional Skill Assessment Scorecard summary, and only when the person asks for one (see section 6, Scorecard).
+**HV Test** is a set of free, browser-only self-assessment tests for personal growth, made by Harsh Goyal (GitHub `harshvittori`). People take a test, get a score, and download personal PDFs. No login. Answers never leave the browser. Stored: an optional Skill Assessment Scorecard summary (only when the person asks) and an anonymous daily count of finished tests (see section 6, Scorecard).
 
 - All Tests page (hub): https://harshvittori.github.io/hv-tests/
 - Test 1, **Maturity Assessment** (category **Personal Growth**): https://harshvittori.github.io/hv-tests/tests/maturity-assessment/
@@ -138,18 +138,35 @@ Single file `tests/maturity-assessment/index.html`. Only external scripts: jsPDF
 - Share image file: `HV_Test_Maturity_Assessment_Scorecard_<Name>.png`.
 - Verify page shows "This is a genuine HV Test scorecard", the scorecard image, and what it does and doesn't confirm (self-assessment, identity not checked, not accredited).
 - Honest limit: scores are computed in the browser, so a determined person could create a record through the API with made-up scores. The rules limit shape and size; App Check enforcement on Firestore raises the bar. Records can't be edited after creation.
-- **Firestore rules (set in the Firebase console, merged with the HV Vault/Reset rule):**
+- **Admin page** `admin/index.html` + `admin/admin.js` (noindex, not linked). Google sign-in (Firebase Auth, same project). Shows scorecards issued (all time, today, 7 and 30 days), tests finished (anonymous counter), share who saved a scorecard (last 30 days), finished without a scorecard, average score, a 30-day chart, level split, and a table of every scorecard (search, View, Delete, CSV of all). Access is enforced by the rules: `isAdmin()` is one Firebase account ID. If a signed-in account isn't the admin, the page shows its account ID and the full rules with that ID filled in, to paste in the console. Local testing: `?emu` on localhost uses the Firebase emulators (project `demo-hv`, auth 9099, Firestore 8089).
+- **Anonymous counter:** when someone submits the Maturity Assessment, `HVScorecard.countCompletion("maturity-assessment")` adds +1 to `stats/<test>_<YYYY-MM-DD India date>` (field `completed`). No names, answers or device data. Anyone can only add 1; only the admin can read. Counting began 29 Sep 2026.
+- **Firestore rules (set in the Firebase console; `ADMIN_UID_HERE` is replaced by the admin's account ID, which the admin page shows):**
 
 ```
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // The HV Test admin: the Firebase account ID shown on hv-tests/admin after signing in
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == 'ADMIN_UID_HERE';
+    }
+    // HV Vault: a signed-in user can read/write only their own data under users/{uid}/
     match /users/{uid}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
+    // Harsh Reset progress sync. Only someone with the long private sync code can read or write it.
+    match /reset/{syncId} {
+      allow read: if syncId.size() >= 32;
+      allow write: if syncId.size() >= 32
+        && request.resource.data.keys().hasOnly(['json', 'updatedAt'])
+        && request.resource.data.json is string
+        && request.resource.data.json.size() < 500000;
+    }
+    // HV Test scorecards: anyone can check one by its ID; created once, never changed. Only the admin can list or delete.
     match /scorecards/{id} {
       allow get: if true;
-      allow list, update, delete: if false;
+      allow list, delete: if isAdmin();
+      allow update: if false;
       allow create: if id.matches('HVT-[A-Z]{2}-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}')
         && request.resource.data.keys().hasOnly(['v','id','name','test','testTitle','category','completedAt','score','level','answered','total','skills','strengths','focus'])
         && request.resource.data.v == 1
@@ -168,6 +185,14 @@ service cloud.firestore {
         && request.resource.data.skills is list && request.resource.data.skills.size() <= 20
         && request.resource.data.strengths is list && request.resource.data.strengths.size() <= 5
         && request.resource.data.focus is list && request.resource.data.focus.size() <= 5;
+    }
+    // HV Test anonymous counter: one number per test per day (+1 when someone finishes a test). Only the admin can read it.
+    match /stats/{key} {
+      allow read: if isAdmin();
+      allow create: if key.matches('[a-z0-9-]{1,60}_20[0-9]{2}-[01][0-9]-[0-3][0-9]')
+        && request.resource.data.keys().hasOnly(['completed']) && request.resource.data.completed == 1;
+      allow update: if request.resource.data.keys().hasOnly(['completed'])
+        && request.resource.data.completed == resource.data.completed + 1;
     }
   }
 }
@@ -225,5 +250,6 @@ All on 27 Sep 2026 unless noted.
 - **29 Sep 2026: three coming-soon tests** in Personal Growth (Strengths Finder, Communication Style, Consistency Check), picked to match the HV World story (knowing your strengths, communication, consistency). Only `test.json` for now; add `index.html` and set `status` to `live` when each one is built.
 - **29 Sep 2026: AI Basics (coming soon)** in a new category, AI & Future Skills: what AI can and cannot do, asking good questions, checking answers, using it at work or study.
 - **29 Sep 2026: Skill Assessment Scorecard + verify page.** Owner wanted an official-looking, HV Test-issued report card that others can check, without claiming accreditation. Design B picked from three; verification by saving a small summary record (owner chose this over a signed-only link). Privacy copy on the intake screen updated to say so.
+- **29 Sep 2026: admin page and anonymous test counter.** Owner wanted to see how many scorecards were issued and how many people finished a test without saving one. Scorecards stay readable by ID only for the public; listing, counts and delete need the admin account. Tests finished are counted as a plain daily number.
 - **29 Sep 2026: scorecard as an image, short results screen.** Owner wanted the scorecard shown like an image with the downloads under it, not a long page, and fewer files: scorecard became page 1 of the Report PDF, a Share image (PNG) was added, and the full results moved behind "See full results".
 - **29 Sep 2026: category tabs on the hub** so people can open one category's tests, like a course catalogue, as the list grows.
