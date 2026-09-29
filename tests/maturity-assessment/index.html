@@ -2163,7 +2163,7 @@ function renderIntake(){
   app.innerHTML = `
     ${brandHeader("Personal Information")}
     <h1 class="title serif">A couple of quick details first.</h1>
-    <p class="lede">This helps make your results feel like they're actually about you. Nothing else is asked for, and nothing leaves your browser unless you choose to get a checkable scorecard at the end.</p>
+    <p class="lede">This helps make your results feel like they're actually about you. Nothing else is asked for. Your details and answers stay in your browser, unless you choose to save a checkable scorecard at the end.</p>
 
     <div class="field">
       <label for="f-name">Your name</label>
@@ -2198,7 +2198,7 @@ function renderIntake(){
 
     <button class="primary" id="intake-next-btn">Continue to the test</button>
 
-    <p class="privacy-note">Your name, age, and profession are only used to personalize the results shown to you on this page and in your downloadable PDF. Your age, profession and answers are never sent to a server. If you choose to get a scorecard at the end, only the name you confirm, the date and your scores are saved so the scorecard can be checked.</p>
+    <p class="privacy-note">Your name, age, and profession are only used to personalize the results shown to you on this page and in your downloadable PDF. Your age, profession and answers are never sent to a server. If you choose to save a scorecard at the end, only the name you confirm, the date and your scores are saved so it can be checked. HV Test also keeps an anonymous count of finished tests: just a number, nothing about you.</p>
   `;
 
   document.querySelectorAll(".prof-opt:not(.focus-opt)").forEach(btn => {
@@ -2452,7 +2452,10 @@ function renderConfirm(){
     </div>
   `;
   document.getElementById("review-btn").addEventListener("click", () => { screen = "quiz"; current = QUESTIONS.length - 1; render(); });
-  document.getElementById("submit-btn").addEventListener("click", () => { assessmentDoneAt = new Date(); issuedScorecard = null; screen = "results"; render(); });
+  document.getElementById("submit-btn").addEventListener("click", () => {
+    assessmentDoneAt = new Date(); issuedScorecard = null; screen = "results"; render();
+    if (window.HVScorecard) HVScorecard.countCompletion("maturity-assessment"); // anonymous +1, nothing about the person
+  });
 }
 
 function renderResults(){

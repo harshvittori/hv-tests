@@ -16,7 +16,8 @@
     appId: "1:592094409539:web:57d3aa494464b867bbf5f6",
     appCheckSiteKey: "6LdZltEtAAAAANC5e-PJFqs2YrM1ubR3CKv0sOhl" // reCAPTCHA Enterprise, restricted to harshvittori.github.io
   };
-  var DOCS = "https://firestore.googleapis.com/v1/projects/" + CFG.projectId + "/databases/(default)/documents/scorecards";
+  var ROOT = "https://firestore.googleapis.com/v1/projects/" + CFG.projectId + "/databases/(default)/documents";
+  var DOCS = ROOT + "/scorecards";
   var VERIFY_URL = "https://harshvittori.github.io/hv-tests/verify/";
   var VERIFY_SHOWN = "harshvittori.github.io/hv-tests/verify";
   var ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"; // 32 characters, no 0/O/1/I so IDs are easy to read out
@@ -122,6 +123,18 @@
       return { ok: false, status: res.status, error: friendly(res.status) };
     }
     return { ok: false, error: friendly(500) };
+  }
+
+  // Anonymous count of finished tests: +1 on stats/<test>_<IST date>. No names, answers or device data. Only the admin can read it.
+  function istDay(d) { return (d || new Date()).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }); }
+  async function countCompletion(test) {
+    try {
+      var doc = "projects/" + CFG.projectId + "/databases/(default)/documents/stats/" + test + "_" + istDay();
+      await fetch(ROOT + ":commit?key=" + CFG.apiKey, {
+        method: "POST", headers: await headers(true), keepalive: true,
+        body: JSON.stringify({ writes: [{ transform: { document: doc, fieldTransforms: [{ fieldPath: "completed", increment: { integerValue: "1" } }] } }] })
+      });
+    } catch (e) {}
   }
 
   async function lookup(id) {
@@ -339,7 +352,7 @@
   }
 
   window.HVScorecard = {
-    renderImage: renderImage, issue: issue, lookup: lookup, loadQr: loadQr, normalizeId: normalizeId,
+    renderImage: renderImage, issue: issue, lookup: lookup, countCompletion: countCompletion, istDay: istDay, config: CFG, appCheckToken: appCheckToken, loadQr: loadQr, normalizeId: normalizeId,
     verifyLink: verifyLink, dateText: dateText, LEVELS: LEVELS,
     VERIFY_URL: VERIFY_URL, VERIFY_SHOWN: VERIFY_SHOWN, ID_RE: ID_RE
   };
