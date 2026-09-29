@@ -2271,35 +2271,12 @@ async function useBrandFont(doc){
         return btoa(bin);
       };
       brandFontData = { bold: await load("Outfit-Bold.ttf"), semibold: await load("Outfit-SemiBold.ttf") };
-      // Scorecard page fonts; if any fails, that page falls back to the built-in fonts
-      try {
-        brandFontData.regular = await load("Outfit-Regular.ttf");
-        brandFontData.serif = await load("CormorantGaramond-SemiBold.ttf");
-        brandFontData.serifItalic = await load("CormorantGaramond-SemiBoldItalic.ttf");
-        brandFontData.mono = await load("JetBrainsMono-Medium.ttf");
-      } catch (e) { brandFontData.regular = null; }
     } catch (e) { brandFontData = false; }
   }
   if (!brandFontData) return;
   doc.addFileToVFS("Outfit-Bold.ttf", brandFontData.bold); doc.addFont("Outfit-Bold.ttf", "Outfit", "bold");
   doc.addFileToVFS("Outfit-SemiBold.ttf", brandFontData.semibold); doc.addFont("Outfit-SemiBold.ttf", "Outfit", "semibold");
   doc.hvBrandFont = true;
-  if (brandFontData.regular) {
-    doc.addFileToVFS("Outfit-Regular.ttf", brandFontData.regular); doc.addFont("Outfit-Regular.ttf", "Outfit", "normal");
-    doc.addFileToVFS("CormorantGaramond-SemiBold.ttf", brandFontData.serif); doc.addFont("CormorantGaramond-SemiBold.ttf", "Cormorant", "semibold");
-    doc.addFileToVFS("CormorantGaramond-SemiBoldItalic.ttf", brandFontData.serifItalic); doc.addFont("CormorantGaramond-SemiBoldItalic.ttf", "Cormorant", "semibolditalic");
-    doc.addFileToVFS("JetBrainsMono-Medium.ttf", brandFontData.mono); doc.addFont("JetBrainsMono-Medium.ttf", "JetBrainsMono", "medium");
-    doc.hvScorecardFonts = true;
-  }
-}
-// Scorecard type: Cormorant Garamond (italic for the name) for name and score, Outfit for text, JetBrains Mono for the ID (built-in fonts as fallback)
-function scFont(doc, kind){
-  const ok = doc.hvScorecardFonts;
-  if (kind === "serif") doc.setFont(ok ? "Cormorant" : "times", ok ? "semibold" : "bold");
-  else if (kind === "name") doc.setFont(ok ? "Cormorant" : "times", ok ? "semibolditalic" : "bolditalic");
-  else if (kind === "mono") doc.setFont(ok ? "JetBrainsMono" : "courier", ok ? "medium" : "bold");
-  else if (kind === "strong") doc.setFont(ok ? "Outfit" : "helvetica", ok ? "semibold" : "bold");
-  else doc.setFont(ok ? "Outfit" : "helvetica", "normal");
 }
 function brandFont(doc, weight){
   if (doc.hvBrandFont) doc.setFont("Outfit", weight); else doc.setFont("helvetica", "bold");
@@ -2775,161 +2752,29 @@ async function shareScorecardImage(){
   } finally { btn.disabled = false; }
 }
 
-// Page 1 of the Report PDF: the scorecard in the same layout as the image (design B). A record with no id is a preview.
-function drawScorecardPage(doc, rec, next){
-  const W = 210, L = 18, R = 192, saved = !!rec.id, link = saved ? HVScorecard.verifyLink(rec.id) : "";
-  const GOLD = [242, 193, 78], MINT = [196, 229, 211], DIM = [150, 199, 174];
-  const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
-  // jsPDF's align ignores charSpace, so spaced labels are placed by hand
-  const spaced = (t, x, y, cs, align) => {
-    const w = doc.getTextWidth(t) + cs * (t.length - 1);
-    doc.text(t, align === "right" ? x - w : align === "center" ? x - w / 2 : x, y, { charSpace: cs });
-  };
+// Page 1 of the Report PDF: the same scorecard image as on screen (design D), at 2x for print, plus the level scale and footer
+async function drawScorecardPage(doc, rec){
+  const W = 210, imgH = W * 1350 / 1080, px = W / 1080;
+  const canvas = await HVScorecard.renderImage(rec, { scale: 2 });
+  doc.setFillColor(250, 251, 250); doc.rect(0, 0, W, 297, "F");
+  doc.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, W, imgH);
+  if (rec.id) doc.link(72 * px, 1165 * px, 130 * px, 130 * px, { url: HVScorecard.verifyLink(rec.id) });
 
-  // Hero: deep green, faint rings around the score, gold rule
-  const heroH = 100, cx = 163, cy = 55, r = 23;
-  doc.setFillColor(14, 84, 56); doc.rect(0, 0, W, heroH, "F");
-  doc.saveGraphicsState();
-  doc.rect(0, 0, W, heroH, null); doc.clip(); doc.discardPath();
-  doc.setLineWidth(0.3); doc.setDrawColor(27, 101, 70);
-  [36, 47, 58, 69, 80].forEach(rad => doc.circle(cx, cy, rad, "S"));
-  doc.restoreGraphicsState();
-  doc.setFillColor(...GOLD); doc.rect(0, heroH, W, 0.9, "F");
-
-  doc.setFillColor(255, 255, 255); doc.roundedRect(L - 0.8, 15.2, 9.6, 9.6, 2.6, 2.6, "F");
-  drawBrandMark(doc, L, 16, 8);
-  brandFont(doc, "bold"); doc.setFontSize(15); doc.setTextColor(255, 255, 255); doc.text("HV", L + 12.5, 22.6);
-  const tx = L + 12.5 + doc.getTextWidth("HV ");
-  brandFont(doc, "semibold"); doc.setTextColor(...GOLD); doc.text("TEST", tx, 22.6);
-  scFont(doc, "strong"); doc.setFontSize(7.5); doc.setTextColor(...GOLD);
-  spaced("SKILL ASSESSMENT SCORECARD", R, 22, 0.9, "right");
-
-  scFont(doc, "strong"); doc.setFontSize(7); doc.setTextColor(...DIM);
-  spaced("SCORECARD FOR", L, 38, 0.8);
-  let nameSize = 40;
-  scFont(doc, "name");
-  do { doc.setFontSize(nameSize); } while (doc.getTextWidth(rec.name) > 114 && --nameSize > 20);
-  doc.setTextColor(255, 255, 255);
-  doc.text(doc.splitTextToSize(rec.name, 112)[0], L, 51);
-  scFont(doc, "normal"); doc.setFontSize(11.5); doc.setTextColor(...MINT);
-  doc.text(rec.testTitle + "   ·   " + rec.category, L, 60);
-  doc.setDrawColor(38, 112, 80); doc.setLineWidth(0.3); doc.line(L, 67, 128, 67);
-
-  const meta = [["COMPLETED", HVScorecard.dateText(rec.completedAt), "strong", 34], ["SCORECARD ID", saved ? rec.id : "Not saved", saved ? "mono" : "strong", 50], ["ANSWERED", rec.answered + " of " + rec.total, "strong", 0]];
-  let mx = L;
-  meta.forEach(([k, v, font, step]) => {
-    scFont(doc, "strong"); doc.setFontSize(6.6); doc.setTextColor(...DIM); spaced(k, mx, 76, 0.7);
-    scFont(doc, font); doc.setFontSize(font === "mono" ? 10.5 : 11.5); doc.setTextColor(255, 255, 255); doc.text(v, mx, 83);
-    mx += step;
-  });
-
-  // Score ring
-  doc.setLineWidth(4.4); doc.setDrawColor(33, 108, 76); doc.circle(cx, cy, r, "S");
-  const sweep = Math.max(0, Math.min(100, rec.score)) / 100 * 360;
-  if (sweep > 0) {
-    doc.setDrawColor(...GOLD); doc.setLineCap("round"); doc.setLineJoin("round");
-    const pts = [], steps = Math.max(2, Math.ceil(sweep / 3));
-    for (let i = 0; i <= steps; i++) { const a = (-90 + sweep * i / steps) * Math.PI / 180; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
-    doc.lines(pts.slice(1).map((p, i) => [p[0] - pts[i][0], p[1] - pts[i][1]]), pts[0][0], pts[0][1], [1, 1], "S", false);
-    doc.setLineCap("butt"); doc.setLineJoin("miter");
-  }
-  scFont(doc, "serif"); doc.setFontSize(42); const sw = doc.getTextWidth(String(rec.score));
-  scFont(doc, "normal"); doc.setFontSize(11); const ow = doc.getTextWidth("/100");
-  scFont(doc, "serif"); doc.setFontSize(42); doc.setTextColor(255, 255, 255); doc.text(String(rec.score), cx - (sw + ow) / 2, cy + 3.5);
-  scFont(doc, "normal"); doc.setFontSize(11); doc.setTextColor(...MINT); doc.text("/100", cx - (sw + ow) / 2 + sw, cy + 3.5);
-  scFont(doc, "strong"); doc.setFontSize(rec.level.length > 12 ? 6 : 7); doc.setTextColor(...GOLD);
-  spaced(rec.level.toUpperCase(), cx, cy + 11, 0.7, "center");
-
-  // Skill-wise bars
-  const label = (t, x, y) => { scFont(doc, "strong"); doc.setFontSize(7.2); doc.setTextColor(111, 129, 119); spaced(t, x, y, 0.7); };
-  let y = 116;
-  label("SKILL-WISE SCORE  |  OUT OF 10", L, y);
-  y += 9;
-  const bx = 60, bw = 50;
-  rec.skills.forEach(s => {
-    scFont(doc, "normal"); doc.setFontSize(9.8); doc.setTextColor(23, 35, 28); doc.text(s.name, L, y);
-    doc.setFillColor(230, 239, 233); doc.roundedRect(bx, y - 2.7, bw, 2.8, 1.4, 1.4, "F");
-    if (s.score > 0) { doc.setFillColor(...hex(HVScorecard.barColor(s.score))); doc.roundedRect(bx, y - 2.7, Math.max(2.8, bw * s.score / 10), 2.8, 1.4, 1.4, "F"); }
-    scFont(doc, "strong"); doc.text(String(s.score), 118, y, { align: "right" });
-    y += 9;
-  });
-  scFont(doc, "normal"); doc.setFontSize(7); doc.setTextColor(111, 129, 119);
-  doc.text("0", bx, y - 3.5); doc.text("5", bx + bw / 2, y - 3.5, { align: "center" }); doc.text("10", bx + bw, y - 3.5, { align: "right" });
-
-  // Strengths / Work on / Next 30 days
-  const scoreOf = n => { const s = rec.skills.find(x => x.name === n); return s ? "  " + s.score : ""; };
-  const pill = (py, title, items, fill, titleColor, dot, border) => {
-    scFont(doc, "normal"); doc.setFontSize(9);
-    const lines = items.map(t => doc.splitTextToSize(t, 55));
-    const h = 11.5 + lines.reduce((n, l) => n + l.length * 4.3 + 1.3, 0);
-    doc.setFillColor(...fill);
-    if (border) { doc.setDrawColor(220, 231, 223); doc.setLineWidth(0.3); doc.roundedRect(128, py, 64, h, 3, 3, "FD"); } else doc.roundedRect(128, py, 64, h, 3, 3, "F");
-    scFont(doc, "strong"); doc.setFontSize(9.8); doc.setTextColor(...titleColor); doc.text(title, 133, py + 7.2);
-    let ly = py + 13;
-    scFont(doc, "normal"); doc.setFontSize(9); doc.setTextColor(23, 35, 28);
-    lines.forEach(ls => { doc.setFillColor(...dot); doc.circle(134.2, ly - 1.1, 0.65, "F"); ls.forEach(l => { doc.text(l, 136.6, ly); ly += 4.3; }); ly += 1.3; });
-    return py + h + 5;
-  };
-  let py = pill(110, "Strengths", rec.strengths.map(n => n + scoreOf(n)), [233, 245, 238], [11, 79, 51], [18, 122, 79]);
-  py = pill(py, "Work on", rec.focus.map(n => n + scoreOf(n)), [253, 243, 225], [138, 90, 16], [217, 138, 43]);
-  if (next && next.length) pill(py, "Next 30 days", next, [247, 250, 248], [23, 35, 28], [111, 129, 119], true);
-
-  // Performance level scale
-  y = 225;
-  label("PERFORMANCE LEVEL", L, y);
-  let lx = L; y += 6.5;
+  // Performance level scale under the image
+  let y = imgH + 8, x = 72 * px;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(122, 133, 127);
+  doc.text("PERFORMANCE LEVEL", x, y, { charSpace: 0.6 });
+  y += 6;
   HVScorecard.LEVELS.forEach(([name, range]) => {
     const t = name + "  " + range, on = name === rec.level;
-    scFont(doc, on ? "strong" : "normal"); doc.setFontSize(8.5);
-    const w = doc.getTextWidth(t) + 8;
-    if (on) { doc.setFillColor(18, 122, 79); doc.roundedRect(lx, y - 4.3, w, 6.4, 3.2, 3.2, "F"); doc.setTextColor(255, 255, 255); }
-    else { doc.setDrawColor(220, 231, 223); doc.setLineWidth(0.3); doc.roundedRect(lx, y - 4.3, w, 6.4, 3.2, 3.2, "S"); doc.setTextColor(74, 90, 80); }
-    doc.text(t, lx + 4, y);
-    lx += w + 3;
+    doc.setFont("helvetica", on ? "bold" : "normal"); doc.setFontSize(8);
+    const w = doc.getTextWidth(t) + 7;
+    if (on) { doc.setFillColor(18, 122, 79); doc.roundedRect(x, y - 4, w, 6, 3, 3, "F"); doc.setTextColor(255, 255, 255); }
+    else { doc.setFillColor(255, 255, 255); doc.setDrawColor(227, 232, 229); doc.setLineWidth(0.3); doc.roundedRect(x, y - 4, w, 6, 3, 3, "FD"); doc.setTextColor(72, 82, 76); }
+    doc.text(t, x + 3.5, y);
+    x += w + 2.5;
   });
-  scFont(doc, "normal"); doc.setFontSize(8); doc.setTextColor(111, 129, 119);
-  doc.text("Overall score is the average of the 10 skills (each 0 to 100), with a small adjustment for response-time pattern.", L, y + 8);
-
-  // Check strip
-  const sy = 248;
-  doc.setFillColor(244, 248, 245); doc.rect(0, sy, W, 34, "F");
-  doc.setDrawColor(220, 231, 223); doc.setLineWidth(0.3); doc.line(0, sy, W, sy);
-  const q = 25;
-  let vx = L;
-  if (saved && window.qrcode) {
-    const qr = window.qrcode(0, "M"); qr.addData(link); qr.make();
-    const n = qr.getModuleCount(), cell = (q - 4) / n;
-    doc.setFillColor(255, 255, 255); doc.roundedRect(L, sy + 4.5, q, q, 2, 2, "FD");
-    doc.setFillColor(23, 35, 28);
-    for (let rr = 0; rr < n; rr++) for (let c = 0; c < n; c++)
-      if (qr.isDark(rr, c)) doc.rect(L + 2 + c * cell, sy + 6.5 + rr * cell, cell + 0.05, cell + 0.05, "F");
-    vx = L + q + 7;
-  }
-  const pillW = saved ? 29 : 23;
-  doc.setFillColor(...(saved ? [223, 241, 230] : [253, 243, 225])); doc.roundedRect(vx, sy + 6, pillW, 6, 3, 3, "F");
-  doc.setFillColor(...(saved ? [18, 122, 79] : [227, 162, 59])); doc.circle(vx + 3.6, sy + 9, 1, "F");
-  scFont(doc, "strong"); doc.setFontSize(7.6); doc.setTextColor(...(saved ? [11, 79, 51] : [138, 90, 16]));
-  spaced(saved ? "COMPLETED" : "PREVIEW", vx + 5.8, sy + 10.1, 0.5);
-  scFont(doc, "normal"); doc.setFontSize(9.5); doc.setTextColor(74, 90, 80);
-  if (saved) {
-    doc.text("Scan the QR code to check this scorecard.", vx, sy + 18.5);
-    doc.text("ID", vx, sy + 24.8);
-    const iw = doc.getTextWidth("ID  ");
-    scFont(doc, "mono"); doc.setFontSize(10.5); doc.setTextColor(23, 35, 28); doc.text(rec.id, vx + iw, sy + 24.8);
-    if (window.qrcode) doc.link(L, sy + 4.5, q, q, { url: link });
-  } else {
-    doc.splitTextToSize("This copy has no check ID. Use \"Add ID and QR code\" on your results page to get one, then download again.", 110)
-      .forEach((l, i) => doc.text(l, vx, sy + 18.5 + i * 5));
-  }
-  scFont(doc, "normal"); doc.setFontSize(8); doc.setTextColor(111, 129, 119);
-  doc.splitTextToSize("Issued by HV Test. A self-assessment, not an accredited certification or qualification.", 48)
-    .forEach((l, i) => doc.text(l, R, sy + 10 + i * 4, { align: "right" }));
-
-  drawFooterBrand(doc, L, 290, "Maturity Assessment | Skill Assessment Scorecard");
-  if (saved) {
-    scFont(doc, "normal"); doc.setFontSize(7.5); doc.setTextColor(111, 129, 119);
-    doc.text("ID " + rec.id, R, 290, { align: "right" });
-  }
+  drawFooterBrand(doc, 72 * px, 290, "Maturity Assessment | Skill Assessment Scorecard");
 }
 
 /* ---------------------------------------------------------------
@@ -2957,8 +2802,7 @@ async function downloadPdf(){
     const doc = new jsPDF({ unit: "mm", format: "a4" });
     await useBrandFont(doc);
     if (window.HVScorecard) {
-      await HVScorecard.loadQr();
-      drawScorecardPage(doc, scorecardForDisplay(), scorecardSummary().next);
+      await drawScorecardPage(doc, scorecardForDisplay());
       doc.addPage();
     }
     const firstReportPage = doc.internal.getNumberOfPages();
