@@ -142,9 +142,26 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   function dateText(d) {
     d = d instanceof Date ? d : new Date(d);
-    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    return d.getDate() + " " + MONTHS[d.getMonth()] + " " + d.getFullYear();
+  }
+
+  /* ---------- Scorecard fonts, served from assets/fonts next to this script ---------- */
+  var FONT_BASE = (function () { try { return new URL("fonts/", document.currentScript.src).href; } catch (e) { return "fonts/"; } })();
+  var FONTS = [["HVPlayfair", "PlayfairDisplay-SemiBold.ttf", "600"], ["HVMono", "JetBrainsMono-Medium.ttf", "500"],
+               ["HVOutfit", "Outfit-Regular.ttf", "400"], ["HVOutfit", "Outfit-SemiBold.ttf", "600"], ["HVOutfit", "Outfit-Bold.ttf", "700"]];
+  var fontsReady = null;
+  function loadFonts() {
+    if (!fontsReady) {
+      fontsReady = Promise.all(FONTS.map(function (f) {
+        if (!window.FontFace) return null;
+        var face = new FontFace(f[0], "url(" + FONT_BASE + f[1] + ")", { weight: f[2] });
+        return face.load().then(function (x) { document.fonts.add(x); }, function () {});
+      })).catch(function () {});
+    }
+    return fontsReady;
   }
   function barColor(v) { return v >= 9 ? "#127A4F" : v >= 7 ? "#3E9A6E" : v >= 6 ? "#E3A23B" : "#D98A2B"; }
   function skillOf(rec, name) {
@@ -165,24 +182,24 @@
   }
 
   var CSS = [
-    ".hvsc{--g:#127A4F;--gi:#0B4F33;--amber:#FFC54D;--ink:#17231C;--soft:#4A5A50;--faint:#6F8177;--ln:#DCE7DF;--tint:#F4F8F5;",
-    "background:#fff;color:var(--ink);border:1px solid var(--ln);border-radius:16px;overflow:hidden;box-shadow:0 12px 32px -18px rgba(12,40,26,.45);text-align:left;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}",
-    ".hvsc .sc-hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:22px 22px 20px;background:linear-gradient(135deg,#0F5A3B,#127A4F 60%,#1A8E5E);color:#fff}",
+    ".hvsc{--g:#127A4F;--gi:#0B4F33;--amber:#F2C14E;--ink:#17231C;--soft:#4A5A50;--faint:#6F8177;--ln:#DCE7DF;--tint:#F4F8F5;",
+    "background:#fff;color:var(--ink);border:1px solid var(--ln);border-radius:16px;overflow:hidden;box-shadow:0 12px 32px -18px rgba(12,40,26,.45);text-align:left;font-family:HVOutfit,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}",
+    ".hvsc .sc-hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:22px 22px 20px;background:#0E5438;color:#fff;border-bottom:4px solid #F2C14E}",
     ".hvsc .sc-top{display:flex;align-items:center;justify-content:space-between;gap:10px;grid-column:1/-1}",
     ".hvsc .sc-word{font-family:'Outfit',-apple-system,'Segoe UI',sans-serif;font-weight:700;font-size:15px;letter-spacing:.04em;display:inline-flex;align-items:center;gap:8px}",
     ".hvsc .sc-word b{color:var(--amber);font-weight:600}",
     ".hvsc .sc-word svg{border-radius:7px;box-shadow:0 0 0 1.5px rgba(255,255,255,.55)}",
     ".hvsc .sc-kind{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.8);text-align:right}",
-    ".hvsc .sc-name{font:400 27px/1.15 'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;margin:4px 0 4px;overflow-wrap:anywhere}",
+    ".hvsc .sc-name{font:600 28px/1.15 HVPlayfair,'Iowan Old Style',Georgia,serif;margin:4px 0 4px;overflow-wrap:anywhere}",
     ".hvsc .sc-test{margin:0;color:rgba(255,255,255,.85);font-size:13.5px}",
     ".hvsc .sc-meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px}",
     ".hvsc .sc-meta span{display:grid;gap:2px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7)}",
     ".hvsc .sc-meta b{font-size:13px;letter-spacing:0;text-transform:none;color:#fff;font-weight:600}",
-    ".hvsc .sc-meta .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}",
+    ".hvsc .sc-meta .mono{font-family:HVMono,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}",
     ".hvsc .sc-ring{position:relative;width:128px;height:128px}",
     ".hvsc .sc-ring svg{width:100%;height:100%;display:block}",
     ".hvsc .sc-ring div{position:absolute;inset:0;display:grid;place-items:center;text-align:center}",
-    ".hvsc .sc-ring strong{font:600 40px/1 'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif}",
+    ".hvsc .sc-ring strong{font:600 40px/1 HVPlayfair,'Iowan Old Style',Georgia,serif}",
     ".hvsc .sc-ring small{font-size:14px;opacity:.8}",
     ".hvsc .sc-ring em{display:block;font-style:normal;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-top:5px;max-width:90px;line-height:1.25}",
     ".hvsc .sc-body{display:grid;gap:18px;padding:20px 22px}",
@@ -218,6 +235,7 @@
   ].join("\n");
   function ensureCss() {
     if (document.getElementById("hvsc-css")) return;
+    loadFonts();
     var st = document.createElement("style"); st.id = "hvsc-css"; st.textContent = CSS;
     document.head.appendChild(st);
   }
@@ -298,55 +316,60 @@
     if (line) lines.push(line);
     return lines;
   }
-  var SERIF = "'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif";
-  var SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
-  var MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
+  var SERIF = "HVPlayfair,'Iowan Old Style',Georgia,serif";
+  var SANS = "HVOutfit,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+  var MONO = "HVMono,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
 
   async function renderImage(rec) {
     await loadQr();
-    try { await Promise.all([document.fonts.load("700 40px Outfit"), document.fonts.load("600 40px Outfit")]); } catch (e) {}
+    await loadFonts();
     var W = 1080, H = 1350, L = 64, R = W - 64, saved = !!rec.id;
     var cv = document.createElement("canvas"); cv.width = W; cv.height = H;
     var ctx = cv.getContext("2d");
     ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
 
-    // Hero
-    var g = ctx.createLinearGradient(0, 0, W, 440);
-    g.addColorStop(0, "#0F5A3B"); g.addColorStop(0.6, "#127A4F"); g.addColorStop(1, "#1A8E5E");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, 440);
-    ctx.fillStyle = "#FFC54D"; ctx.fillRect(0, 440, W, 6);
+    // Hero: deep green, faint rings around the score, gold rule
+    var GOLD = "#F2C14E", MINT = "#C4E5D3", DIM = "#96C7AE";
+    var cx = 862, cy = 250, r = 116;
+    ctx.fillStyle = "#0E5438"; ctx.fillRect(0, 0, W, 440);
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, 440); ctx.clip();
+    ctx.strokeStyle = "#1B6546"; ctx.lineWidth = 1.6;
+    [185, 240, 295, 350, 405].forEach(function (rad) { ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2); ctx.stroke(); });
+    ctx.restore();
+    ctx.fillStyle = GOLD; ctx.fillRect(0, 440, W, 5);
     ctx.fillStyle = "#fff"; rr(ctx, L - 4, 52, 64, 64, 16); ctx.fill();
     drawMark(ctx, L, 56, 56);
     ctx.textBaseline = "alphabetic";
     spaced(ctx, 1.5);
-    ctx.font = "700 40px Outfit," + SANS; ctx.fillStyle = "#fff"; ctx.fillText("HV", L + 78, 99);
+    ctx.font = "700 40px " + SANS; ctx.fillStyle = "#fff"; ctx.fillText("HV", L + 80, 99);
     var hvw = ctx.measureText("HV ").width;
-    ctx.font = "600 40px Outfit," + SANS; ctx.fillStyle = "#FFC54D"; ctx.fillText("TEST", L + 78 + hvw, 99);
-    spaced(ctx, 4); ctx.font = "700 19px " + SANS; ctx.fillStyle = "rgba(255,255,255,.82)"; ctx.textAlign = "right";
+    ctx.font = "600 40px " + SANS; ctx.fillStyle = GOLD; ctx.fillText("TEST", L + 80 + hvw, 99);
+    spaced(ctx, 4.5); ctx.font = "600 19px " + SANS; ctx.fillStyle = GOLD; ctx.textAlign = "right";
     ctx.fillText("SKILL ASSESSMENT SCORECARD", R, 92); ctx.textAlign = "left";
+    spaced(ctx, 4); ctx.font = "600 17px " + SANS; ctx.fillStyle = DIM; ctx.fillText("SCORECARD FOR", L, 158);
     spaced(ctx, 0);
-    fit(ctx, rec.name, 600, "400 {s}px " + SERIF, 70, 36);
-    ctx.fillStyle = "#fff"; ctx.fillText(rec.name, L, 222);
-    ctx.font = "400 30px " + SANS; ctx.fillStyle = "rgba(255,255,255,.86)"; ctx.fillText(rec.testTitle + "  |  " + rec.category, L, 272);
-    var meta = [["COMPLETED", dateText(rec.completedAt), SANS, 200], ["ID", saved ? rec.id : "Given when saved", saved ? MONO : SANS, 250], ["ANSWERED", rec.answered + " of " + rec.total, SANS, 0]];
+    fit(ctx, rec.name, 580, "600 {s}px " + SERIF, 74, 36);
+    ctx.fillStyle = "#fff"; ctx.fillText(rec.name, L, 238);
+    ctx.font = "400 29px " + SANS; ctx.fillStyle = MINT; ctx.fillText(rec.testTitle + "   \u00B7   " + rec.category, L, 286);
+    ctx.fillStyle = "#26704F"; ctx.fillRect(L, 316, 560, 2);
+    var meta = [["COMPLETED", dateText(rec.completedAt), SANS, 176], ["SCORECARD ID", saved ? rec.id : "Given when saved", saved ? MONO : SANS, 260], ["ANSWERED", rec.answered + " of " + rec.total, SANS, 0]];
     var mx = L;
     meta.forEach(function (m) {
-      spaced(ctx, 3); ctx.font = "700 17px " + SANS; ctx.fillStyle = "rgba(255,255,255,.7)"; ctx.fillText(m[0], mx, 346);
-      spaced(ctx, 0); ctx.font = "700 27px " + m[2]; ctx.fillStyle = "#fff"; ctx.fillText(m[1], mx, 386);
-      mx += Math.max(m[3], ctx.measureText(m[1]).width + 44);
+      spaced(ctx, 3.5); ctx.font = "600 16px " + SANS; ctx.fillStyle = DIM; ctx.fillText(m[0], mx, 358);
+      spaced(ctx, 0); ctx.font = (m[2] === MONO ? "500 26px " : "600 28px ") + m[2]; ctx.fillStyle = "#fff"; ctx.fillText(m[1], mx, 398);
+      mx += Math.max(m[3], ctx.measureText(m[1]).width + 40);
     });
 
     // Ring
-    var cx = 872, cy = 262, r = 118;
-    ctx.lineWidth = 28; ctx.strokeStyle = "rgba(255,255,255,.18)"; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = 24; ctx.strokeStyle = "#216C4C"; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
     var sc = Math.max(0, Math.min(100, rec.score));
-    if (sc > 0) { ctx.strokeStyle = "#FFC54D"; ctx.lineCap = "round"; ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * sc / 100); ctx.stroke(); ctx.lineCap = "butt"; }
-    ctx.font = "600 96px " + SERIF; var sw = ctx.measureText(String(rec.score)).width;
-    ctx.font = "400 32px " + SERIF; var ow = ctx.measureText("/100").width;
-    ctx.fillStyle = "#fff"; ctx.font = "600 96px " + SERIF; ctx.fillText(String(rec.score), cx - (sw + ow) / 2, cy + 22);
-    ctx.font = "400 32px " + SERIF; ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.fillText("/100", cx - (sw + ow) / 2 + sw, cy + 22);
-    spaced(ctx, 2); ctx.textAlign = "center"; ctx.fillStyle = "#FFC54D";
-    fit(ctx, rec.level.toUpperCase(), 150, "700 {s}px " + SANS, 22, 14); ctx.fillText(rec.level.toUpperCase(), cx, cy + 66);
+    if (sc > 0) { ctx.strokeStyle = GOLD; ctx.lineCap = "round"; ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * sc / 100); ctx.stroke(); ctx.lineCap = "butt"; }
+    ctx.font = "600 100px " + SERIF; var sw = ctx.measureText(String(rec.score)).width;
+    ctx.font = "400 30px " + SANS; var ow = ctx.measureText("/100").width;
+    ctx.fillStyle = "#fff"; ctx.font = "600 100px " + SERIF; ctx.fillText(String(rec.score), cx - (sw + ow) / 2, cy + 20);
+    ctx.font = "400 30px " + SANS; ctx.fillStyle = MINT; ctx.fillText("/100", cx - (sw + ow) / 2 + sw, cy + 20);
+    spaced(ctx, 3); ctx.textAlign = "center"; ctx.fillStyle = GOLD;
+    fit(ctx, rec.level.toUpperCase(), 150, "600 {s}px " + SANS, 20, 13); ctx.fillText(rec.level.toUpperCase(), cx, cy + 62);
     ctx.textAlign = "left"; spaced(ctx, 0);
 
     // Skill bars
