@@ -2,6 +2,51 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
+<!-- HV World premiere gate: the app opens on 1 Oct 2026, 12:00 PM IST. Until then this screen covers it; at that time the page reloads into the app. Remove this block after the premiere. -->
+<script>
+(function () {
+  var PREM = Date.parse("2026-10-01T12:00:00+05:30"), NAME = "HV Test";
+  try { if (/[?&]hvopen=1\b/.test(location.search)) localStorage.setItem("hvopen", "1"); if (localStorage.getItem("hvopen") === "1") return; } catch (e) {}
+  if (Date.now() >= PREM) return;
+  var d = document.documentElement; d.classList.add("hvgate");
+  // while locked, taps and keys never reach the app underneath
+  var stop = function (e) { if (d.classList.contains("hvgate") && !(e.composedPath && e.composedPath().some(function (n) { return n.tagName === "A" && n.getAttribute && n.getAttribute("href") === "https://harshvittori.github.io/"; }))) { e.stopImmediatePropagation(); if (e.type !== "pointerdown" && e.type !== "touchstart") e.preventDefault(); } };
+  ["pointerdown", "mousedown", "click", "touchstart", "keydown", "keyup"].forEach(function (t) { window.addEventListener(t, stop, true); });
+  var st = document.createElement("style");
+  st.textContent = 'html.hvgate,html.hvgate body{overflow:hidden!important}html.hvgate body>*:not(#hvGate){visibility:hidden!important}#hvGate{position:fixed!important;inset:0!important;z-index:2147483647!important;display:block!important;visibility:visible!important}';
+  var css = ':host{all:initial}' +
+    '.w{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:24px;font-family:Sora,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#0B0D1A;text-align:center;' +
+    'background:radial-gradient(60% 55% at 18% 25%,#AEB8F5 0,transparent 70%),radial-gradient(55% 55% at 85% 80%,#CDB9F4 0,transparent 70%),radial-gradient(45% 40% at 60% 10%,#fff 0,transparent 70%),#E6E8F6}' +
+    '*{box-sizing:border-box;margin:0}.g{max-width:560px;width:100%;padding:40px 28px 34px;border-radius:28px;background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);border:1px solid rgba(255,255,255,.9);box-shadow:0 30px 70px -30px rgba(46,67,166,.45),inset 0 1px 0 #fff}' +
+    '.n{display:inline-block;font-size:13px;font-weight:600;color:#3A3F63;background:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.95);padding:7px 14px;border-radius:999px}' +
+    'h1{font-size:clamp(26px,5vw,36px);font-weight:700;letter-spacing:-.03em;margin:18px 0 0;line-height:1.15}' +
+    '.k{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#4B55A8;margin:26px 0 0}' +
+    '.c{font-size:clamp(38px,9vw,60px);font-weight:700;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1.1;margin:6px 0 0}' +
+    '.d{font-size:15px;color:#555B7A;margin:8px 0 0}' +
+    'a{display:inline-flex;align-items:center;gap:8px;margin-top:26px;font-size:15px;font-weight:600;color:#fff;background:#2E43A6;text-decoration:none;padding:12px 20px;border-radius:999px;box-shadow:0 12px 26px -12px rgba(46,67,166,.8)}' +
+    'a:hover{background:#24378C}';
+  (document.head || d).appendChild(st);
+  var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+  var show = function () {
+    if (document.getElementById("hvGate")) return;
+    var g = document.createElement("div"); g.id = "hvGate"; g.setAttribute("role", "dialog"); g.setAttribute("aria-label", NAME + " opens soon");
+    var root = g.attachShadow ? g.attachShadow({ mode: "open" }) : g;
+    root.innerHTML = '<style>' + css + '</style><div class="w"><div class="g"><span class="n">HV World</span><h1>' + NAME + ' opens with the premiere.</h1><p class="k">Opens in</p><p class="c" role="timer"></p><p class="d">1 October 2026 · 12:00 PM IST</p><a href="https://harshvittori.github.io/">Visit HV World &rarr;</a></div></div>';
+    document.body.appendChild(g);
+    var c = root.querySelector(".c");
+    var tick = function () {
+      var ms = PREM - Date.now();
+      if (ms <= 0) { location.reload(); return; }
+      var t = Math.floor(ms / 1000), dd = Math.floor(t / 86400), h = Math.floor(t % 86400 / 3600), m = Math.floor(t % 3600 / 60), x = t % 60;
+      c.textContent = (dd ? dd + "d " : "") + (dd || h ? pad(h) + "h " : "") + pad(m) + "m " + pad(x) + "s";
+      setTimeout(tick, 1000 - Date.now() % 1000 + 5);
+    };
+    tick();
+  };
+  if (document.body) show(); else document.addEventListener("DOMContentLoaded", show);
+})();
+</script>
+<!-- /HV World premiere gate -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
   // Light by default; a saved choice from the toggle wins (shared by every HV Test page)
