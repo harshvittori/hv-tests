@@ -137,6 +137,7 @@ Single file `tests/maturity-assessment/index.html`. Only external scripts: jsPDF
 - Scorecard look (design **D**, chosen 29 Sep 2026 over A Ivory & Gold, B Midnight, B light and C Swiss): light `#FAFBFA` background with a soft green glow top right, white cards with light borders and shadow, **Sora** 600 for name and score, Sora 400 for text, **Geist Mono** for the ID, green gradient score ring with a green level badge, bars green (7+) or ink (below 7), green chips for strengths and grey chips for work on, footer with QR + "Scan the QR code to check this scorecard" + ID (no verify link text; owner asked). One renderer, `HVScorecard.renderImage(rec, {scale})` in `assets/scorecard.js`, draws it on a canvas; the results page, Share image, verify page and **Report PDF page 1** (image at 2x as JPEG, QR area clickable, performance level scale under it) all use it, so they always match. Fonts in `assets/fonts/` (OFL).
 - Share image file: `HV_Test_Maturity_Assessment_Scorecard_<Name>.png`.
 - Verify page shows "This is a genuine HV Test scorecard", the scorecard image, and what it does and doesn't confirm (self-assessment, identity not checked, not accredited).
+- **Rules consistency checks (Maturity Assessment):** a scorecard is only accepted if it looks like one the test really produces: `HVT-MA-` ID, exact test/title/category, 28-30 questions all answered, level matching the score band, the 10 dimensions in order (0-10 each), an overall score within -11/+6 of the dimension sum (rounding + the up-to-5-point timing adjustment), 3 strengths and 3 focus areas from those dimensions with no overlap. **If a test's scoring, dimensions, question count or levels change, or another test starts issuing scorecards, update `maturityCard` in the rules and run `hv-vault-web/firebase/test` (`npm test`) first, or new scorecards will be refused.**
 - Honest limit: scores are computed in the browser, so a determined person could create a record through the API with made-up scores. The rules limit shape and size; App Check enforcement on Firestore raises the bar. Records can't be edited after creation.
 - **Admin page** `admin/index.html` + `admin/admin.js` (noindex, not linked). Google sign-in (Firebase Auth, same project). Shows scorecards issued (all time, today, 7 and 30 days), tests finished (anonymous counter), share who saved a scorecard (last 30 days), finished without a scorecard, average score, a 30-day chart, level split, and a table of every scorecard (search, View, Delete, CSV of all). Access is enforced by the rules: `isAdmin()` is one Firebase account ID. If a signed-in account isn't the admin, the page just says "Access denied". To set or change the admin, open `admin/?setup`: it shows the signed-in account ID and the full rules with that ID filled in, to paste in the console. The admin was set up on 29 Sep 2026. Local testing: `?emu` on localhost uses the Firebase emulators (project `demo-hv`, auth 9099, Firestore 8089).
 - **Anonymous counter:** when someone submits the Maturity Assessment, `HVScorecard.countCompletion("maturity-assessment")` adds +1 to `stats/<test>_<YYYY-MM-DD India date>` (field `completed`). No names, answers or device data. Anyone can only add 1; only the admin can read. Counting began 29 Sep 2026.
@@ -185,8 +186,39 @@ service cloud.firestore {
         && request.resource.data.answered >= 0 && request.resource.data.answered <= request.resource.data.total && request.resource.data.total <= 200
         && request.resource.data.skills is list && request.resource.data.skills.size() <= 20
         && request.resource.data.strengths is list && request.resource.data.strengths.size() <= 5
-        && request.resource.data.focus is list && request.resource.data.focus.size() <= 5;
+        && request.resource.data.focus is list && request.resource.data.focus.size() <= 5
+        && maturityCard(request.resource.data);
     }
+    // Consistency checks for the Maturity Assessment (the only test that issues scorecards). A record
+    // must look like one the test really produces: 28-30 questions, all answered; the level matching the
+    // score band; the 10 dimensions in order, each 0-10; an overall score in line with them (the test may
+    // take up to 5 points off for answer timing); 3 strengths and 3 focus areas from those dimensions.
+    // A new test that issues scorecards needs its own check here.
+    function skillOk(s, name) {
+      return s is map && s.keys().hasOnly(['name','score']) && s.name == name && s.score is int && s.score >= 0 && s.score <= 10;
+    }
+    function levelOk(score, level) {
+      return (score <= 40 && level == 'Developing') || (score > 40 && score <= 65 && level == 'Emerging')
+        || (score > 65 && score <= 85 && level == 'Grounded') || (score > 85 && level == 'Highly Consistent');
+    }
+    function maturitySkills(k, dims) {
+      return k.size() == 10
+        && skillOk(k[0], dims[0]) && skillOk(k[1], dims[1]) && skillOk(k[2], dims[2]) && skillOk(k[3], dims[3]) && skillOk(k[4], dims[4])
+        && skillOk(k[5], dims[5]) && skillOk(k[6], dims[6]) && skillOk(k[7], dims[7]) && skillOk(k[8], dims[8]) && skillOk(k[9], dims[9]);
+    }
+    function maturityCard(d) {
+      let dims = ['Emotional Control','Accountability','Self-Awareness','Handling Conflict','Relationships',
+                  'Decision-Making','Patience','Empathy','Responsibility','Long-Term Thinking'];
+      let k = d.skills;
+      return d.id.matches('HVT-MA-.*') && d.test == 'maturity-assessment' && d.testTitle == 'Maturity Assessment' && d.category == 'Personal Growth'
+        && d.total >= 28 && d.total <= 30 && d.answered == d.total
+        && levelOk(d.score, d.level)
+        && maturitySkills(k, dims)
+        && sumOk(d.score, k[0].score + k[1].score + k[2].score + k[3].score + k[4].score + k[5].score + k[6].score + k[7].score + k[8].score + k[9].score)
+        && d.strengths.size() == 3 && d.focus.size() == 3
+        && d.strengths.hasOnly(dims) && d.focus.hasOnly(dims) && !d.strengths.hasAny(d.focus);
+    }
+    function sumOk(score, sum) { return score >= sum - 11 && score <= sum + 6; }
     // HV World live settings (maintenance, banner, home page switches): anyone can read, only the admin can change
     match /config/{doc} {
       allow get: if doc == 'site';
