@@ -7,7 +7,7 @@
 <!-- HV World premiere gate: the app opens on 1 Oct 2026, 12:00 PM IST. Until then this screen covers it; at that time the page reloads into the app. Remove this block after the premiere. -->
 <script>
 (function () {
-  var PREM = Date.parse("2026-10-01T12:00:00+05:30"), NAME = "HV Test";
+  var PREM = Date.parse("2026-10-01T12:05:00+05:30"), NAME = "HV Test";
   try { if (/[?&]hvopen=1\b/.test(location.search)) localStorage.setItem("hvopen", "1"); if (localStorage.getItem("hvopen") === "1") return; } catch (e) {}
   if (Date.now() >= PREM) return;
   var d = document.documentElement; d.classList.add("hvgate");
@@ -33,7 +33,7 @@
     if (document.getElementById("hvGate")) return;
     var g = document.createElement("div"); g.id = "hvGate"; g.setAttribute("role", "dialog"); g.setAttribute("aria-label", NAME + " opens soon");
     var root = g.attachShadow ? g.attachShadow({ mode: "open" }) : g;
-    root.innerHTML = '<style>' + css + '</style><div class="w"><div class="g"><span class="n">HV World</span><h1>' + NAME + ' opens with the premiere.</h1><p class="k">Opens in</p><p class="c" role="timer"></p><p class="d">1 October 2026 · 12:00 PM IST</p><a href="https://harshvittori.github.io/">Visit HV World &rarr;</a></div></div>';
+    root.innerHTML = '<style>' + css + '</style><div class="w"><div class="g"><span class="n">HV World</span><h1>' + NAME + ' opens with the premiere.</h1><p class="k">Opens in</p><p class="c" role="timer"></p><p class="d">1 October 2026 · 12:05 PM IST</p><a href="https://harshvittori.github.io/">Visit HV World &rarr;</a></div></div>';
     document.body.appendChild(g);
     var c = root.querySelector(".c");
     var tick = function () {
