@@ -1,0 +1,6 @@
+# Weekly update PRs for the GitHub Actions used by the workflow. Nothing merges on its own.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }

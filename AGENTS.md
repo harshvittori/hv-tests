@@ -154,13 +154,14 @@ service cloud.firestore {
     match /users/{uid}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
-    // Harsh Reset progress sync. Only someone with the long private sync code can read or write it.
+    // Old Harsh Reset sync (before Google accounts). Nothing writes here any more: plans now live
+    // under users/{uid}/reset. Kept read-only so old data can still be copied into an account.
+    // A doc can only be opened by its long private ID (no listing), and the owner's old shared
+    // plan, whose ID is in the public page code, can only be opened by the admin.
     match /reset/{syncId} {
-      allow read: if syncId.size() >= 32;
-      allow write: if syncId.size() >= 32
-        && request.resource.data.keys().hasOnly(['json', 'updatedAt'])
-        && request.resource.data.json is string
-        && request.resource.data.json.size() < 500000;
+      allow get: if syncId.size() >= 32
+        && (syncId != 'ffe5a55d2c34804c295003af2d6f0a7974d5fcee' || isAdmin());
+      allow list, write: if false;
     }
     // HV Test scorecards: anyone can check one by its ID; created once, never changed. Only the admin can list or delete.
     match /scorecards/{id} {
@@ -185,6 +186,14 @@ service cloud.firestore {
         && request.resource.data.skills is list && request.resource.data.skills.size() <= 20
         && request.resource.data.strengths is list && request.resource.data.strengths.size() <= 5
         && request.resource.data.focus is list && request.resource.data.focus.size() <= 5;
+    }
+    // HV World live settings (maintenance, banner, home page switches): anyone can read, only the admin can change
+    match /config/{doc} {
+      allow get: if doc == 'site';
+      allow list: if false;
+      allow write: if isAdmin() && doc == 'site'
+        && request.resource.data.keys().hasOnly(['json', 'updatedAt', 'by'])
+        && request.resource.data.json is string && request.resource.data.json.size() < 100000;
     }
     // HV Test anonymous counter: one number per test per day (+1 when someone finishes a test). Only the admin can read it.
     match /stats/{key} {
