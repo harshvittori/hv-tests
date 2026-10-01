@@ -40,7 +40,8 @@
     var id = "HVT-" + s.slice(3, 5) + "-" + s.slice(5, 9) + "-" + s.slice(9);
     return ID_RE.test(id) ? id : null;
   }
-  function verifyLink(id) { return VERIFY_URL + "#" + id; }
+  // tagged so visits from shared scorecards (link, QR, PDF) show up as "Shared by users" in HV analytics
+  function verifyLink(id) { return VERIFY_URL + "?utm_source=scorecard&utm_medium=share#" + id; }
 
   /* ---------- App Check (only on the live site; the key is locked to that domain) ---------- */
   var appCheckReady = null;
