@@ -227,6 +227,19 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['json', 'updatedAt', 'by'])
         && request.resource.data.json is string && request.resource.data.json.size() < 100000;
     }
+    // Anonymous usage counts (HV analytics, /a.js). Only +1 counters per product per day, week, month or first-visit
+    // cohort; no IDs or personal data. Anyone can add to them, only the admin can read them. Nothing can be deleted.
+    match /analytics/{doc} {
+      allow read: if isAdmin();
+      allow create: if analyticsId(doc) && request.resource.data.size() <= 60;
+      allow update: if analyticsId(doc) && request.resource.data.size() <= 900
+        && request.resource.data.diff(resource.data).affectedKeys().size() <= 40;
+    }
+    function analyticsId(doc) {
+      return doc.matches('(world|test|reset|vault)_(d|c)_20[0-9]{2}-[01][0-9]-[0-3][0-9]')
+        || doc.matches('(world|test|reset|vault)_w_20[0-9]{2}-W[0-5][0-9]')
+        || doc.matches('(world|test|reset|vault)_m_20[0-9]{2}-[01][0-9]');
+    }
     // HV Test anonymous counter: one number per test per day (+1 when someone finishes a test). Only the admin can read it.
     match /stats/{key} {
       allow read: if isAdmin();
