@@ -1955,6 +1955,9 @@ function assessmentDateTimeText(){
 }
 let pdfStatus = "";
 let issuedScorecard = null; // the saved scorecard record for this attempt, if the person asked for one
+// Anonymous usage counts (HV analytics, /a.js): event names only, never answers, scores or anything typed.
+const track = (name) => { try { if (window.hva) window.hva("event", name); } catch (e) {} };
+let testStartedAt = 0, resultsSeen = false;
 let userInfo = { name: "", age: "", profession: "", professionOther: "", focus: "" };
 let recentAttemptIds = [];
 let showRetakeNotice = false;
@@ -2203,7 +2206,7 @@ function renderLanding(){
       <p class="intro-note">A self-assessment for personal growth, not a medical or professional psychological test.<br>HV Test by Harsh Vittori.</p>
     </div>
   `;
-  document.getElementById("start-btn").addEventListener("click", () => { screen = "intake"; render(); });
+  document.getElementById("start-btn").addEventListener("click", () => { track("test_intro"); screen = "intake"; render(); });
 }
 
 function renderIntake(){
@@ -2287,6 +2290,7 @@ function renderIntake(){
     if (err) { errEl.textContent = err; errEl.classList.remove("hidden"); return; }
     errEl.classList.add("hidden");
     generateAssessment();
+    testStartedAt = Date.now(); resultsSeen = false; track("test_start");
     screen = "quiz"; render();
   });
 }
@@ -2481,6 +2485,7 @@ function renderQuiz(){
   document.getElementById("next-btn").addEventListener("click", () => {
     if (answers[current] === null) return;
     recordTime(current);
+    [25, 50, 75].forEach((q) => { const at = Math.ceil(QUESTIONS.length * q / 100) - 1; if (current === at) track("progress_" + q); });
     if (current === QUESTIONS.length - 1) { screen = "confirm"; render(); }
     else { current++; render(); }
   });
@@ -2501,12 +2506,16 @@ function renderConfirm(){
   `;
   document.getElementById("review-btn").addEventListener("click", () => { screen = "quiz"; current = QUESTIONS.length - 1; render(); });
   document.getElementById("submit-btn").addEventListener("click", () => {
-    assessmentDoneAt = new Date(); issuedScorecard = null; screen = "results"; render();
+    assessmentDoneAt = new Date(); issuedScorecard = null;
+    track("test_complete");
+    if (testStartedAt) { const m = (Date.now() - testStartedAt) / 60000; track(m < 5 ? "time_lt5" : m < 10 ? "time_5_10" : m < 20 ? "time_10_20" : "time_gt20"); }
+    screen = "results"; render();
     if (window.HVScorecard) HVScorecard.countCompletion("maturity-assessment"); // anonymous +1, nothing about the person
   });
 }
 
 function renderResults(){
+  if (!resultsSeen) { resultsSeen = true; track("results_view"); }
   const { dimScores, overall, baseOverall, timeStats } = computeResults();
   const tier = tierFor(overall);
   const sorted = DIMENSIONS.map(d => ({...d, score: dimScores[d.key]})).sort((a,b) => b.score - a.score);
@@ -2662,6 +2671,7 @@ function renderResults(){
   `;
 
   document.getElementById("retake-btn").addEventListener("click", () => {
+    track("test_retake");
     QUESTIONS = [];
     answers = [];
     times = [];
@@ -2767,12 +2777,14 @@ async function createScorecard(){
   const [res] = await Promise.all([HVScorecard.issue(record, "MA"), HVScorecard.loadQr()]);
   if (!res.ok) { btn.disabled = false; statusEl.textContent = res.error; return; }
   issuedScorecard = res.record;
+  track("scorecard");
   renderScorecardArea();
   document.getElementById("sc-status").textContent = "Saved. Your scorecard and Report PDF now carry this ID and QR code.";
 }
 
 async function copyScorecardLink(){
   const statusEl = document.getElementById("sc-status"), link = HVScorecard.verifyLink(issuedScorecard.id);
+  track("share_link");
   try { await navigator.clipboard.writeText(link); statusEl.textContent = "Link copied."; }
   catch (e) { statusEl.textContent = link; }
 }
@@ -2832,6 +2844,7 @@ async function drawScorecardPage(doc, rec){
    PDF REPORT
 ----------------------------------------------------------------*/
 async function downloadPdf(){
+  track("pdf_download");
   const statusEl = document.getElementById("pdf-status");
   const btn = document.getElementById("pdf-btn");
   if (!window.jspdf || !window.jspdf.jsPDF) {
