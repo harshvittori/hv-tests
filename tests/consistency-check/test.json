@@ -1,0 +1,16 @@
+{
+  "title": "Consistency Check",
+  "category": "Personal Growth",
+  "tagline": "Why you start strong and then stop, and how to keep going.",
+  "description": "Honest questions about routines, procrastination and restarting after a bad week. You get a consistency score, what usually breaks your streak, and a simple daily plan to stay on track.",
+  "questions": "about 25",
+  "minutes": 8,
+  "outputs": [
+    "Consistency score out of 100",
+    "Consistency Report PDF",
+    "30-day habit plan"
+  ],
+  "status": "coming-soon",
+  "order": 4,
+  "added": "2026-09-29"
+}

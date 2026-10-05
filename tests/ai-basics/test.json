@@ -1,0 +1,16 @@
+{
+  "title": "AI Basics",
+  "category": "AI & Future Skills",
+  "tagline": "How well do you really understand and use AI?",
+  "description": "Everyday questions about what AI can and cannot do, how to ask it good questions, when to double-check its answers, and how to use it at work or in study. You get an AI basics score and a simple plan to get better.",
+  "questions": "about 20",
+  "minutes": 8,
+  "outputs": [
+    "AI basics score out of 100",
+    "AI Basics Report PDF",
+    "7-day AI practice plan"
+  ],
+  "status": "coming-soon",
+  "order": 5,
+  "added": "2026-09-29"
+}
