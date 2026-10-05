@@ -1,5 +1,7 @@
 # HV Test
 
-Part of **HV World** · https://harshvittori.github.io/hv-tests/
+A product of **HV World** · https://harshvittori.github.io/hv-tests/
 
-This repository is the published website. © 2026 Harsh Goyal. All rights reserved.
+Developed by Harsh Goyal.
+
+© 2026 HV World. All rights reserved.
